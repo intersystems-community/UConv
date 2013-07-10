@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="exportGlobal" type="MAC" languagemode="0"><![CDATA[
+#include Globs
+#include %occStatus
+Start(ary,link)  
+  SET file = ##class(%Stream.FileCharacter).%New()
+  SET blockWritten = 0
+  SET buffer=""
+  set file.Filename=link
+  d file.Clear()
+  set file.RemoveOnClose=0
+  set queryary=ary
+  if (queryary="") {set queryary = $QUERY(@ary)}
+  FOR   {
+    
+        QUIT:queryary=""  
+      
+	       	set i=1
+	       	set tempstr=""
+	       	set blockWritten = blockWritten + ##class(Globals.Utils).executeNode(queryary,.buffer)	
+			SET queryary=$QUERY(@queryary) 
+       	
+  }
+  do ##class(Globals.Utils).EncodeAndSave(buffer,file)
+  set blockWritten = blockWritten+1
+  WRITE !,"Finished. Blocks written: ", blockWritten
+  d file.%Save()
+  d file.%Close()
+  
+]]></Routine>
+</Export>

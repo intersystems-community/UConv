@@ -5,7 +5,7 @@
 <Super>%Persistent</Super>
 <TimeCreated>63011,53656.67001</TimeCreated>
 
-<Method name="ChunkAndSave">
+<Method name="ChunkAndSend">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>queryary:%String,buffer:%String,file:%Stream.FileCharacter</FormalSpec>
 <ReturnType>%Numeric</ReturnType>
@@ -61,7 +61,7 @@
 ]]></Implementation>
 </Method>
 
-<Method name="WorkWithList">
+<Method name="listToString">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>str:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
@@ -71,7 +71,7 @@
 	if ($LISTVALID(str)&&(str'="")) {
 		while ($LISTNEXT(str,ptr,nextElem)){
 			if ($LISTVALID(nextElem)&&(nextElem'="")) {
-				set retVal=retVal_##class(Globals.Utils).WorkWithList(nextElem)_","
+				set retVal=retVal_##class(Globals.Utils).listToString(nextElem)_","
 			}
 			else{
 				set retVal=retVal_""""_nextElem_""""_","
@@ -117,6 +117,22 @@
   	SET stat=$COMPILE(src,0,errs,,,,"TestB")
     d ^TestB
     q ^str2
+]]></Implementation>
+</Method>
+
+<Method name="executeNode">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>queryarr:%String,buffer:%String</FormalSpec>
+<ReturnType>%Numeric</ReturnType>
+<Implementation><![CDATA[
+	set blockWritten=0
+	 if ($LISTVALID(@queryarr)&&(@queryarr'="")){
+		        set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSend(queryary_"||"_##class(Globals.Utils).listToString(@queryary)_$$$NL,.buffer,.file)
+       	}
+       	else {
+	       set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSend(queryary_"||"_""""_@queryary_""""_$$$NL,.buffer,.file)
+       	}
+      q blockWritten
 ]]></Implementation>
 </Method>
 
