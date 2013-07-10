@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="que" type="MAC" languagemode="0"><![CDATA[
+#include Globs
+Start(ary)  
+  SET file = ##class(%Stream.FileCharacter).%New()
+  SET blockWritten = 0
+  SET buffer=""
+  set file.Filename ="C:\Users\shmidt\Desktop\temp.txt"
+  d file.Clear()
+  set file.RemoveOnClose=0
+  //SET queryary=$QUERY(@ary@(""))
+  set queryary=ary
+  if (queryary="") {set queryary = $QUERY(@ary)}
+  //set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSave(queryary_"||"_@queryary_$$$NL,.buffer,.file)
+  
+  FOR   {
+    
+        QUIT:queryary=""  
+      
+	       set i=1
+	       set tempstr=""
+	       if ($LISTVALID(@queryary)&&(@queryary'="")){
+		        set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSave(queryary_"||"_##class(Globals.Utils).WorkWithList(@queryary)_$$$NL,.buffer,.file)
+       	}
+       	else {
+	       set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSave(queryary_"||"_""""_@queryary_""""_$$$NL,.buffer,.file)
+       	}
+       	SET queryary=$QUERY(@queryary) 
+  }
+  do ##class(Globals.Utils).EncodeAndSave(buffer,file)
+  set blockWritten = blockWritten+1
+  WRITE !,"Finished. Blocks written: ", blockWritten
+  d file.%Save()
+  d file.%Close()
+  
+]]></Routine>
+</Export>

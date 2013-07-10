@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="sockserv" type="MAC" languagemode="0"><![CDATA[
+#include %occStatus
+#include %occMessages
+Start
+#dim sock As %IO.ServerSocket = ##class(%IO.ServerSocket).%New() 
+  set sock.TranslationTable="UTF8"
+
+  write #,"Запуск сервера...", ! 
+
+  #; параметры: pPort, pTimeout, pSC
+  do sock.Open(7001, 1, .sc)
+
+  if $$$ISOK(sc) {
+
+    do sock.Listen()
+
+    do{
+      #; параметры: pMaxReadLen, pTimeout
+      set s=sock.ReadAny(250, 5)
+      write s,!
+
+      #; параметры: pData, pFlush
+      do sock.Write($$$FormatText("Сообщение с сервера %1",""""_s_""""), $$$YES) 
+    }while(s'="bye!")
+
+    do sock.Close()
+
+    write "Останов сервера...", ! 
+  }
+  Quit
+]]></Routine>
+</Export>

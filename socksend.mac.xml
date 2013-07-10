@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="socksend" type="MAC" languagemode="0"><![CDATA[
+#include %occStatus
+Start(str,sock)
+ // set ^sock = ##class(%IO.Socket).%New() 
+ // set ^sock.TranslationTable="UTF8"
+  #; параметры: pHost, pPort, pTimeout, pSC
+  //do sock.Open("127.0.0.1","7001",1,.sc)
+
+  if $$$ISOK(sc) {
+
+    #; параметры: pData, pFlush
+    do sock.Write(str, $$$YES, .sc) 
+	write $l(str), " chars sent",!
+   // do ^sock.Close()
+  }
+  Quit
+]]></Routine>
+</Export>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="Globals.Utils">
+<IncludeCode>Globs</IncludeCode>
+<Super>%Persistent</Super>
+<TimeCreated>63011,53656.67001</TimeCreated>
+
+<Method name="ChunkAndSave">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>queryary:%String,buffer:%String,file:%Stream.FileCharacter</FormalSpec>
+<ReturnType>%Numeric</ReturnType>
+<Implementation><![CDATA[
+		SET tempstr=""
+		set blockWritten=0
+		set i=1
+		for  
+			{
+		  	set tempstr=$e(queryary,i,i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)-1)
+		  	q:($l(tempstr)<($$$BLOCKSIZE/$$$SYMBOLSPERCHAR - $l(buffer))) 	//выход если можем записать в буффер
+		  	set i=i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)
+		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
+		  	do ##class(Globals.Utils).EncodeAndSave(tempstr,file)
+		  	set blockWritten = blockWritten+1
+	  		}
+	  set buffer=buffer_tempstr
+	  q blockWritten
+]]></Implementation>
+</Method>
+
+<Method name="EncodeAndSave">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>inpt:%String,file:%Stream.FileCharacter</FormalSpec>
+<Implementation><![CDATA[
+	set buf=""
+	set i=1
+	for  {
+	set extr=$extract(inpt,i)
+	q:(extr="")
+	set buf=buf_$ZHEX($A($ZConvert(extr,"O","CP1251")))
+	set i=i+1
+	}
+	do file.Write(buf)
+]]></Implementation>
+</Method>
+
+<Method name="DecodeAndSave">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>inpt:%String,file:%Stream.FileCharacter</FormalSpec>
+<Implementation><![CDATA[
+	set buf=""
+	set i=1
+	for  {
+	set extr=$extract(inpt,i,i+1)
+	q:(extr="")
+	if (extr="DA") { set buf = buf_$$$NL} // BAD IDEA - new line execution
+	else{
+	set buf=buf_$ZConvert($c($zh(extr)),"I","CP1251") }
+	set i=i+2
+	}
+	do file.Write(buf)
+]]></Implementation>
+</Method>
+
+<Method name="WorkWithList">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	set retVal="$lb(", nextElem="",ptr=0
+	
+	if ($LISTVALID(str)&&(str'="")) {
+		while ($LISTNEXT(str,ptr,nextElem)){
+			if ($LISTVALID(nextElem)&&(nextElem'="")) {
+				set retVal=retVal_##class(Globals.Utils).WorkWithList(nextElem)_","
+			}
+			else{
+				set retVal=retVal_""""_nextElem_""""_","
+			}
+		}
+				set retVal=$e(retVal,1,*-1)
+				}
+	else {
+		set retVal=""""_str_""""
+	}
+	q retVal_")"
+]]></Implementation>
+</Method>
+
+<Storage name="Default">
+<Type>%Library.CacheStorage</Type>
+<DataLocation>^Globals.UtilsD</DataLocation>
+<DefaultData>UtilsDefaultData</DefaultData>
+<IdLocation>^Globals.UtilsD</IdLocation>
+<IndexLocation>^Globals.UtilsI</IndexLocation>
+<StreamLocation>^Globals.UtilsS</StreamLocation>
+<ExtentSize>100000</ExtentSize>
+<Data name="UtilsDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+</Export>
