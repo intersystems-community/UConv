@@ -86,6 +86,40 @@
 ]]></Implementation>
 </Method>
 
+<Method name="executeString">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str:%String</FormalSpec>
+<Implementation><![CDATA[
+	set globalName="",globalVal="",globalIndex=""
+	set globalName = $e(str,2,($f(str,"(")-2)) 
+	set globalVal = $e(str,($f(str,"||")), *)
+	if (($f(str,"||")>$f(str,"(")) &&  ($f(str,"(")>0)){
+	set globalIndex = $e(str,$f(str,"("),($f(str,"||")-4))
+	set @("^"_globalName_"("_globalIndex_")") =##class(Globals.Utils).lbCreate(globalVal)
+	}
+	else {
+		set globalName = $e(str,2,($f(str,"||")-3)) 
+		set @("^"_globalName) =##class(Globals.Utils).lbCreate(globalVal)
+	
+	}
+]]></Implementation>
+</Method>
+
+<Method name="lbCreate">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	SET src(0)=3
+  	SET src(1)="TestB "
+  	SET src(2)=" set ^str2="_str
+  	SET src(3)=" QUIT"
+  	SET stat=$COMPILE(src,0,errs,,,,"TestB")
+    d ^TestB
+    q ^str2
+]]></Implementation>
+</Method>
+
 <Storage name="Default">
 <Type>%Library.CacheStorage</Type>
 <DataLocation>^Globals.UtilsD</DataLocation>

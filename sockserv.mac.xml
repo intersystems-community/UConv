@@ -3,6 +3,7 @@
 <Routine name="sockserv" type="MAC" languagemode="0"><![CDATA[
 #include %occStatus
 #include %occMessages
+#include Globs
 Start
 #dim sock As %IO.ServerSocket = ##class(%IO.ServerSocket).%New() 
   set sock.TranslationTable="UTF8"
@@ -18,11 +19,8 @@ Start
 
     do{
       #; параметры: pMaxReadLen, pTimeout
-      set s=sock.ReadAny(250, 5)
-      write s,!
-
-      #; параметры: pData, pFlush
-      do sock.Write($$$FormatText("Сообщение с сервера %1",""""_s_""""), $$$YES) 
+      set s=sock.ReadAny($$$BLOCKSIZE, 5)
+      write s,! 
     }while(s'="bye!")
 
     do sock.Close()

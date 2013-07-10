@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="impexp" type="MAC" languagemode="0"><![CDATA[
+Start
+	w #, "Welcome to import/export utility for Cache Globals"
+	do {r !, "What do you wanna to do? Type(import/export) :", job}
+	while ((job'="import")&&(job'="export"))
+	if (job="import") { GOTO Import }
+	else { GOTO Export }
+	Quit
+	
+Import
+	w #, "Import section:"
+	w !, "1 - importing from local file",!,"2 - create server to get data"
+	do {r !, "What do you wanna to do? :", job}
+	while ((job'=1)&&(job'=2))
+	if (job=2) { d ^sockserv }
+	else { d ^importGlobal }
+	Quit
+	
+Export
+	w #, "Export section:"
+	w !, "1 - exporting from local file",!,"2 - sending to IP"
+	do {r !, "What do you wanna to do? :", job}
+	while ((job'=1)&&(job'=2))
+	if (job=2) { d ^sockserv }
+	Quit
+	
+	
+]]></Routine>
+</Export>

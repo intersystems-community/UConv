@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="importGlobal" type="MAC" languagemode="0"><![CDATA[
+Start(filename2)
+	set timer = $ZHOROLOG
+	set filename="C:\Users\shmidt\Desktop\temp_unhex.txt"
+	set file = ##class(%Stream.FileCharacter).%New()
+	set file.Filename=filename
+	while ('file.AtEnd) {
+		set str = file.ReadLine()
+		do ##class(Globals.Utils).executeString(str)
+	}
+	w !, "Time elapsed: ", $ZHOROLOG-timer
+]]></Routine>
+</Export>
