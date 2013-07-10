@@ -9,11 +9,8 @@ Start(ary)
   set file.Filename ="C:\Users\shmidt\Desktop\temp.txt"
   d file.Clear()
   set file.RemoveOnClose=0
-  //SET queryary=$QUERY(@ary@(""))
   set queryary=ary
   if (queryary="") {set queryary = $QUERY(@ary)}
-  //set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSave(queryary_"||"_@queryary_$$$NL,.buffer,.file)
-  
   FOR   {
     
         QUIT:queryary=""  
