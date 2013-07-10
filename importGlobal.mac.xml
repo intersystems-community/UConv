@@ -1,15 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Routine name="importGlobal" type="MAC" languagemode="0"><![CDATA[
-Start(filename2)
+#include Globs
+#include %occStatus
+#include %occMessages
+Start(link)
 	set timer = $ZHOROLOG
-	set filename="C:\Users\shmidt\Desktop\temp_unhex.txt"
 	set file = ##class(%Stream.FileCharacter).%New()
-	set file.Filename=filename
-	while ('file.AtEnd) {
-		set str = file.ReadLine()
-		do ##class(Globals.Utils).executeString(str)
+	set file.Filename=link
+	set buf=""
+	if (link="")
+	{
+		set sock = ##class(%IO.ServerSocket).%New() 
+  		set sock.TranslationTable="UTF8"
+  		do sock.Open("7001",1,.sc)
+  		if $$$ISOK(sc) {
+
+    	do sock.Listen()
+
+    	do	{	
+    		set s=sock.ReadAny($$$BLOCKSIZE, 5)
+    		set s=##class(Globals.Utils).decode(s)
+    		set buf=buf_s
+    		while ($f(buf,$$$NL)>0) 
+    			{
+	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3))
+	    			set buf=$e(buf,$f(buf,$$$NL),*)	    		
+	    		}
+    		}
+    		while(s'="")
+
+    		do sock.Close()
 	}
-	w !, "Time elapsed: ", $ZHOROLOG-timer
+	}
+	else 
+		{
+		while ('file.AtEnd) {
+			set s = file.Read($$$BLOCKSIZE)
+			set s=##class(Globals.Utils).decode(s)
+    		set buf=buf_s
+    		while ($f(buf,$$$NL)>0) 
+    			{
+	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3))
+	    			set buf=$e(buf,$f(buf,$$$NL),*)	    		
+	    		}
+			}
+		}
+	
+	w "Successfully imported!"
 ]]></Routine>
 </Export>

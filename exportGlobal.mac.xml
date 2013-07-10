@@ -8,24 +8,25 @@ Start(ary,link)
   SET blockWritten = 0
   SET buffer=""
   set file.Filename=link
-  d file.Clear()
   set file.RemoveOnClose=0
+  set sock=##class(%IO.Socket).%New()
+  set sock.TranslationTable="UTF8"
+  do sock.Open(link,"7001",1,.sc)
+  if ($$$ISOK(sc)) { set file=sock }
   set queryary=ary
-  if (queryary="") {set queryary = $QUERY(@ary)}
+  try {set TrashValue=@queryary} catch {set queryary = $QUERY(@queryary)}
   FOR   {
     
-        QUIT:queryary=""  
-      
-	       	set i=1
-	       	set tempstr=""
-	       	set blockWritten = blockWritten + ##class(Globals.Utils).executeNode(queryary,.buffer)	
+        	QUIT:queryary=""  
+        	set node = ##class(Globals.Utils).nodeToStr(queryary)
+	       	set blockWritten = blockWritten + ##class(Globals.Utils).ChunkAndSend(node,.buffer, file)	
 			SET queryary=$QUERY(@queryary) 
        	
   }
   do ##class(Globals.Utils).EncodeAndSave(buffer,file)
   set blockWritten = blockWritten+1
   WRITE !,"Finished. Blocks written: ", blockWritten
-  d file.%Save()
+  try {d file.%Save()} catch {}
   d file.%Close()
   
 ]]></Routine>

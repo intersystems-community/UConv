@@ -11,19 +11,16 @@ Start
 	
 Import
 	w #, "Import section:"
-	w !, "1 - importing from local file",!,"2 - create server to get data"
-	do {r !, "What do you wanna to do? :", job}
-	while ((job'=1)&&(job'=2))
-	if (job=2) { d ^sockserv }
-	else { d ^importGlobal }
+	w !, "Type in filename or type nothing to create socket server: "
+	r filename
+	d ^importGlobal(filename)
 	Quit
 	
 Export
 	w #, "Export section:"
-	w !, "1 - exporting from local file",!,"2 - sending to IP"
-	do {r !, "What do you wanna to do? :", job}
-	while ((job'=1)&&(job'=2))
-	if (job=2) { d ^sockserv }
+				r !,"Write name of global: ", glob
+				r !,"Write filename or IP(port 7001): ", link
+				d ^exportGlobal(glob,link)
 	Quit
 	
 	

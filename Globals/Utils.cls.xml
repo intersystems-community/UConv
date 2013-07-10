@@ -29,7 +29,7 @@
 
 <Method name="EncodeAndSave">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>inpt:%String,file:%Stream.FileCharacter</FormalSpec>
+<FormalSpec>inpt:%String,file:%String</FormalSpec>
 <Implementation><![CDATA[
 	set buf=""
 	set i=1
@@ -39,13 +39,14 @@
 	set buf=buf_$ZHEX($A($ZConvert(extr,"O","CP1251")))
 	set i=i+1
 	}
-	do file.Write(buf)
+	do (@file).Write(buf)
 ]]></Implementation>
 </Method>
 
-<Method name="DecodeAndSave">
+<Method name="decode">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>inpt:%String,file:%Stream.FileCharacter</FormalSpec>
+<FormalSpec>inpt:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set buf=""
 	set i=1
@@ -57,7 +58,7 @@
 	set buf=buf_$ZConvert($c($zh(extr)),"I","CP1251") }
 	set i=i+2
 	}
-	do file.Write(buf)
+	q buf
 ]]></Implementation>
 </Method>
 
@@ -71,7 +72,8 @@
 	if ($LISTVALID(str)&&(str'="")) {
 		while ($LISTNEXT(str,ptr,nextElem)){
 			if ($LISTVALID(nextElem)&&(nextElem'="")) {
-				set retVal=retVal_##class(Globals.Utils).listToString(nextElem)_","
+				set ttTT = ##class(Globals.Utils).listToString(nextElem)
+				set retVal=retVal_ttTT_","
 			}
 			else{
 				set retVal=retVal_""""_nextElem_""""_","
@@ -120,19 +122,21 @@
 ]]></Implementation>
 </Method>
 
-<Method name="executeNode">
+<Method name="nodeToStr">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>queryarr:%String,buffer:%String</FormalSpec>
-<ReturnType>%Numeric</ReturnType>
+<FormalSpec>queryarr:%String,buffer:%String,file</FormalSpec>
+<ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set blockWritten=0
 	 if ($LISTVALID(@queryarr)&&(@queryarr'="")){
-		        set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSend(queryary_"||"_##class(Globals.Utils).listToString(@queryary)_$$$NL,.buffer,.file)
+		 		set fsfff=##class(Globals.Utils).listToString(@queryarr)
+		 		set tempstr=queryarr_"||"_fsfff_$$$NL
+		       q tempstr
        	}
        	else {
-	       set blockWritten =  blockWritten + ##class(Globals.Utils).ChunkAndSend(queryary_"||"_""""_@queryary_""""_$$$NL,.buffer,.file)
-       	}
-      q blockWritten
+	       set tempstr=queryarr_"||"_""""_(@queryarr)_""""_$$$NL
+	       q tempstr
+	        }
 ]]></Implementation>
 </Method>
 
