@@ -7,7 +7,7 @@
 
 <Method name="ChunkAndSend">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>queryary:%String,buffer:%String,file:%Stream.FileCharacter</FormalSpec>
+<FormalSpec>queryary:%String,buffer:%String,file:%String,sf:%Boolean</FormalSpec>
 <ReturnType>%Numeric</ReturnType>
 <Implementation><![CDATA[
 		SET tempstr=""
@@ -19,7 +19,10 @@
 		  	q:($l(tempstr)<($$$BLOCKSIZE/$$$SYMBOLSPERCHAR - $l(buffer))) 	//выход если можем записать в буффер
 		  	set i=i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
-		  	do ##class(Globals.Utils).EncodeAndSave(tempstr,file)
+		  	set tempstr2=##class(Globals.Utils).EncodeAndSave(tempstr)
+		  	if (sf) {do file.Write(tempstr2, $$$YES)}
+		  	else { do file.Write(tempstr2) }
+		  	if (sf) {do file.ReadAny(3,1) w !,"BlockSent" }
 		  	set blockWritten = blockWritten+1
 	  		}
 	  set buffer=buffer_tempstr
@@ -29,17 +32,22 @@
 
 <Method name="EncodeAndSave">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>inpt:%String,file:%String</FormalSpec>
+<FormalSpec>inpt:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	set buf=""
 	set i=1
 	for  {
 	set extr=$extract(inpt,i)
 	q:(extr="")
-	set buf=buf_$ZHEX($A($ZConvert(extr,"O","CP1251")))
+	set t=$ZHEX($A($ZConvert(extr,"O","CP1251")))
+	if ($l(t) =1) {s t="000"_t}
+	elseif ($l(t) =2) {s t="00"_t}
+	elseif ($l(t) =3) {s t="0"_t}
+	set buf=buf_t
 	set i=i+1
 	}
-	do (@file).Write(buf)
+	q buf
 ]]></Implementation>
 </Method>
 
@@ -51,12 +59,13 @@
 	set buf=""
 	set i=1
 	for  {
-	set extr=$extract(inpt,i,i+1)
+	set extr=$extract(inpt,i,i+3)
 	q:(extr="")
-	if (extr="DA") { set buf = buf_$$$NL} // BAD IDEA - new line execution
-	else{
-	set buf=buf_$ZConvert($c($zh(extr)),"I","CP1251") }
-	set i=i+2
+	//if (extr="DA") { set buf = buf_$$$NL} 
+	// BAD IDEA - new line execution
+	//else{
+	set buf=buf_$c($a($zconvert($c($zh(extr)),"i","CP1251"))) //}
+	set i=i+4
 	}
 	q buf
 ]]></Implementation>
@@ -101,7 +110,8 @@
 	}
 	else {
 		set globalName = $e(str,2,($f(str,"||")-3)) 
-		set @("^"_globalName) =##class(Globals.Utils).lbCreate(globalVal)
+		try {set @("^"_globalName) =##class(Globals.Utils).lbCreate(globalVal)}
+		catch {}
 	
 	}
 ]]></Implementation>

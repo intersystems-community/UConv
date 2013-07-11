@@ -13,20 +13,24 @@ Start(link)
 	{
 		set sock = ##class(%IO.ServerSocket).%New() 
   		set sock.TranslationTable="UTF8"
-  		do sock.Open("7001",1,.sc)
+  		do sock.Open("7031",1,.sc)
   		if $$$ISOK(sc) {
 
     	do sock.Listen()
-
     	do	{	
-    		set s=sock.ReadAny($$$BLOCKSIZE, 5)
+    		//if ('(sock.IsConnected)) {q}
+    		set s=sock.ReadAny($$$BLOCKSIZE, -1)
     		set s=##class(Globals.Utils).decode(s)
+    		//w s, !
     		set buf=buf_s
+    		//w s, !
     		while ($f(buf,$$$NL)>0) 
     			{
 	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3))
-	    			set buf=$e(buf,$f(buf,$$$NL),*)	    		
+	    			set buf=$e(buf,$f(buf,$$$NL),*)	 
+	    				
 	    		}
+	    	do sock.Write("|||")
     		}
     		while(s'="")
 
@@ -37,6 +41,7 @@ Start(link)
 		{
 		while ('file.AtEnd) {
 			set s = file.Read($$$BLOCKSIZE)
+			
 			set s=##class(Globals.Utils).decode(s)
     		set buf=buf_s
     		while ($f(buf,$$$NL)>0) 

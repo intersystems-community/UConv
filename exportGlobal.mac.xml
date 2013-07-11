@@ -4,6 +4,7 @@
 #include Globs
 #include %occStatus
 Start(ary,link)  
+  set SockFlag=0
   SET file = ##class(%Stream.FileCharacter).%New()
   SET blockWritten = 0
   SET buffer=""
@@ -11,22 +12,26 @@ Start(ary,link)
   set file.RemoveOnClose=0
   set sock=##class(%IO.Socket).%New()
   set sock.TranslationTable="UTF8"
-  do sock.Open(link,"7001",1,.sc)
-  if ($$$ISOK(sc)) { set file=sock }
+  do sock.Open(link,"7031",1,.sc)
+  if ($$$ISOK(sc)) { set file=sock, SockFlag=1 }
   set queryary=ary
   try {set TrashValue=@queryary} catch {set queryary = $QUERY(@queryary)}
   FOR   {
     
         	QUIT:queryary=""  
         	set node = ##class(Globals.Utils).nodeToStr(queryary)
-	       	set blockWritten = blockWritten + ##class(Globals.Utils).ChunkAndSend(node,.buffer, file)	
+	       	set blockWritten = blockWritten + ##class(Globals.Utils).ChunkAndSend(node,.buffer, file, SockFlag)	
 			SET queryary=$QUERY(@queryary) 
        	
   }
-  do ##class(Globals.Utils).EncodeAndSave(buffer,file)
+  	set tempstr2=##class(Globals.Utils).EncodeAndSave(buffer)
+	do file.Write(tempstr2)
+	if (SockFlag) {do file.ReadAny(3,-1) }
+	do file.Write("")
   set blockWritten = blockWritten+1
   WRITE !,"Finished. Blocks written: ", blockWritten
   try {d file.%Save()} catch {}
+  if (SockFlag) {d sock.Close()}
   d file.%Close()
   
 ]]></Routine>

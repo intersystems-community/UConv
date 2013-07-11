@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Routine name="Globs" type="INC"><![CDATA[
-#define BLOCKSIZE  32000
+#define BLOCKSIZE  16
 #define NL  $c($zh("0d"),$zh("0a"))
 #define SYMBOLSPERCHAR 2
 ]]></Routine>
