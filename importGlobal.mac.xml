@@ -19,23 +19,24 @@ Start(link)
     	do sock.Listen()
     	do	{	
     		//if ('(sock.IsConnected)) {q}
-    		set s=sock.ReadAny($$$BLOCKSIZE, -1)
+    		set s=sock.ReadAny($$$BLOCKSIZE, 3)
     		set s=##class(Globals.Utils).decode(s)
-    		//w s, !
-    		set buf=buf_s
+    		w "Got Data @ "_$ztime($ZHOROLOG), ",still have ",$s," memory",!
+    		set buf=(buf_s) //
     		//w s, !
     		while ($f(buf,$$$NL)>0) 
     			{
+	    			if (buf=$$$NL) {q}
 	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3))
-	    			set buf=$e(buf,$f(buf,$$$NL),*)	 
+	    			set buf=$e(buf,$f(buf,$$$NL),*)
 	    				
 	    		}
-	    	do sock.Write("|||")
+	    	do sock.Write("111")
     		}
     		while(s'="")
 
     		do sock.Close()
-	}
+	} else { w "CANT CREATE SOCK",!}
 	}
 	else 
 		{

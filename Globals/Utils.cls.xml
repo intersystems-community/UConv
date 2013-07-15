@@ -22,7 +22,7 @@
 		  	set tempstr2=##class(Globals.Utils).EncodeAndSave(tempstr)
 		  	if (sf) {do file.Write(tempstr2, $$$YES)}
 		  	else { do file.Write(tempstr2) }
-		  	if (sf) {do file.ReadAny(3,1) w !,"BlockSent" }
+		  	if (sf) {do file.ReadAny(3,1)} //w !,"BlockSent" }
 		  	set blockWritten = blockWritten+1
 	  		}
 	  set buffer=buffer_tempstr
@@ -101,6 +101,7 @@
 <ClassMethod>1</ClassMethod>
 <FormalSpec>str:%String</FormalSpec>
 <Implementation><![CDATA[
+	try{
 	set globalName="",globalVal="",globalIndex=""
 	set globalName = $e(str,2,($f(str,"(")-2)) 
 	set globalVal = $e(str,($f(str,"||")), *)
@@ -110,10 +111,11 @@
 	}
 	else {
 		set globalName = $e(str,2,($f(str,"||")-3)) 
-		try {set @("^"_globalName) =##class(Globals.Utils).lbCreate(globalVal)}
-		catch {}
+		set @("^"_globalName) =##class(Globals.Utils).lbCreate(globalVal)
 	
 	}
+	}
+	catch {}
 ]]></Implementation>
 </Method>
 
