@@ -5,38 +5,33 @@
 #include %occStatus
 #include %occMessages
 Start(link)
-	set timer = $ZHOROLOG
 	set file = ##class(%Stream.FileCharacter).%New()
 	set file.Filename=link
 	set buf=""
 	if (link="")
 	{
-		set sock = ##class(%IO.ServerSocket).%New() 
-  		set sock.TranslationTable="UTF8"
+		// Via socket
+		set sock = ##class(%IO.ServerSocket).%New(), sock.TranslationTable="UTF8" 
   		do sock.Open("7031",1,.sc)
   		if $$$ISOK(sc) {
 
     	do sock.Listen()
     	do	{	
-    		//if ('(sock.IsConnected)) {q}
     		set s=sock.ReadAny($$$BLOCKSIZE, 3)
     		set s=##class(Globals.Utils).decode(s)
-    		w "Got Data @ "_$ztime($ZHOROLOG), ",still have ",$s," memory",!
-    		set buf=(buf_s) //
-    		//w s, !
+    		set buf=(buf_s) 
     		while ($f(buf,$$$NL)>0) 
     			{
-	    			if (buf=$$$NL) {q}
-	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3))
+	    			q:buf=$$$NL
+	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3)) //все ок, NL не может быть в начале пакета
 	    			set buf=$e(buf,$f(buf,$$$NL),*)
 	    				
 	    		}
-	    	do sock.Write("111")
+	    	do sock.Write($c(1,1,1))
     		}
-    		while(s'="")
-
+    		while(sock.IsConnected)
     		do sock.Close()
-	} else { w "CANT CREATE SOCK",!}
+	} else {w "CANT CREATE SOCK",!}
 	}
 	else 
 		{

@@ -2,10 +2,14 @@
 <Export generator="Cache" version="25">
 <Class name="Globals.Utils">
 <IncludeCode>Globs</IncludeCode>
-<Super>%Persistent</Super>
+<Super>%RegisteredObject</Super>
 <TimeCreated>63011,53656.67001</TimeCreated>
 
 <Method name="ChunkAndSend">
+<Description><![CDATA[
+
+Chunk - > Hex -> Save to buf or send to file/socket
+]]></Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>queryary:%String,buffer:%String,file:%String,sf:%Boolean</FormalSpec>
 <ReturnType>%Numeric</ReturnType>
@@ -19,18 +23,17 @@
 		  	q:($l(tempstr)<($$$BLOCKSIZE/$$$SYMBOLSPERCHAR - $l(buffer))) 	//выход если можем записать в буффер
 		  	set i=i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
-		  	set tempstr2=##class(Globals.Utils).EncodeAndSave(tempstr)
-		  	if (sf) {do file.Write(tempstr2, $$$YES)}
-		  	else { do file.Write(tempstr2) }
-		  	if (sf) {do file.ReadAny(3,1)} //w !,"BlockSent" }
-		  	set blockWritten = blockWritten+1
+		  	set tempstr2=##class(Globals.Utils).Encode(tempstr)
+			do file.Write(tempstr2, $$$YES)
+			set blockWritten = (blockWritten+1) 
+		  	if (sf) do file.ReadAny(3)
 	  		}
 	  set buffer=buffer_tempstr
 	  q blockWritten
 ]]></Implementation>
 </Method>
 
-<Method name="EncodeAndSave">
+<Method name="Encode">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>inpt:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
@@ -61,9 +64,6 @@
 	for  {
 	set extr=$extract(inpt,i,i+3)
 	q:(extr="")
-	//if (extr="DA") { set buf = buf_$$$NL} 
-	// BAD IDEA - new line execution
-	//else{
 	set buf=buf_$c($a($zconvert($c($zh(extr)),"i","CP1251"))) //}
 	set i=i+4
 	}
@@ -80,12 +80,12 @@
 	
 	if ($LISTVALID(str)&&(str'="")) {
 		while ($LISTNEXT(str,ptr,nextElem)){
-			if ($LISTVALID(nextElem)&&(nextElem'="")) {
+			if ($LISTVALID($get(nextElem))&&($get(nextElem)'="")) {
 				set ttTT = ##class(Globals.Utils).listToString(nextElem)
 				set retVal=retVal_ttTT_","
 			}
 			else{
-				set retVal=retVal_""""_nextElem_""""_","
+				set retVal=retVal_""""_$get(nextElem)_""""_","
 			}
 		}
 				set retVal=$e(retVal,1,*-1)
@@ -152,19 +152,28 @@
 ]]></Implementation>
 </Method>
 
-<Storage name="Default">
-<Type>%Library.CacheStorage</Type>
-<DataLocation>^Globals.UtilsD</DataLocation>
-<DefaultData>UtilsDefaultData</DefaultData>
-<IdLocation>^Globals.UtilsD</IdLocation>
-<IndexLocation>^Globals.UtilsI</IndexLocation>
-<StreamLocation>^Globals.UtilsS</StreamLocation>
-<ExtentSize>100000</ExtentSize>
-<Data name="UtilsDefaultData">
-<Value name="1">
-<Value>%%CLASSNAME</Value>
-</Value>
-</Data>
-</Storage>
+<Method name="Compare">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	Set g1=$Name(^WebER.Data.LabOrderD)
+	Set g2=$Name(^|"TEST"|WebER.Data.LabOrderD)
+	Set res=$Name(^XXX)
+	Set (cnt1,cnt2)=0
+	Kill @res
+	Set i=""
+	For  {
+		Set i=$Order(@g1@(i))
+		If i="" Quit
+		If '$Data(@g2@(i)) Set @res@(1,i)="",cnt1=cnt1+1
+	}
+	Set i=""
+	For  {
+		Set i=$Order(@g2@(i))
+		If i="" Quit
+		If '$Data(@g1@(i)) Set @res@(2,i)="",cnt2=cnt2+1
+	}
+	Write cnt1,!,cnt2
+]]></Implementation>
+</Method>
 </Class>
 </Export>

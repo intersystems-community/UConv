@@ -6,32 +6,31 @@
 Start(ary,link)  
   set SockFlag=0
   SET file = ##class(%Stream.FileCharacter).%New()
-  SET blockWritten = 0
-  SET buffer=""
-  set file.Filename=link
-  set file.RemoveOnClose=0
-  set sock=##class(%IO.Socket).%New()
-  set sock.TranslationTable="UTF8"
+  SET blocksWritten = 0, buffer=""
+  set file.Filename=link, file.RemoveOnClose=0
+  set sock=##class(%IO.Socket).%New(), sock.TranslationTable="UTF8"
   do sock.Open(link,"7031",1,.sc)
   if ($$$ISOK(sc)) { set file=sock, SockFlag=1 }
   set queryary=ary
-  try {set TrashValue=@queryary} catch {set queryary = $QUERY(@queryary)}
+  try {set TrashValue=@queryary} catch {set queryary = $QUERY(@queryary)} //
   FOR   {
-    
-        	QUIT:queryary=""  
-        	set node = ##class(Globals.Utils).nodeToStr(queryary)
-	       	set blockWritten = blockWritten + ##class(Globals.Utils).ChunkAndSend(node,.buffer, file, SockFlag)	
-			SET queryary=$QUERY(@queryary) 
-       	
+        	q:queryary=""  
+        	set node = ##class(Globals.Utils).nodeToStr(queryary) //получаем 1 строчку из 1 узла
+	       	set blocksWritten = (blocksWritten + ##class(Globals.Utils).ChunkAndSend(node,.buffer, file, SockFlag))	//обрабатываем строчку(encode + ->buf/->send)
+			SET queryary=$QUERY(@queryary)  	
   }
-  	set tempstr2=##class(Globals.Utils).EncodeAndSave(buffer)
-	do file.Write(tempstr2)
-	if (SockFlag) {do file.ReadAny(3,-1) }
-	do file.Write("")
-  set blockWritten = blockWritten+1
-  WRITE !,"Finished. Blocks written: ", blockWritten
-  try {d file.%Save()} catch {}
-  if (SockFlag) {d sock.Close()}
+  	//Записываем оставшийся кусок
+  	if (SockFlag) do file.ReadAny(3) 
+
+  	set tempstr2=##class(Globals.Utils).Encode(buffer)
+  	  	set trashStr =tempstr2
+  	f i=1:1:($$$BLOCKSIZE-$l(tempstr2)) {set trashStr=(trashStr_"0")}
+	do file.Write(trashStr)
+	set blocksWritten = blocksWritten+1
+	if (SockFlag) do file.ReadAny(3) 
+  WRITE !,"Finished. Blocks written: ", blocksWritten
+  if ('SockFlag) { d file.%Save() }
+  else { d sock.Close() }
   d file.%Close()
   
 ]]></Routine>
