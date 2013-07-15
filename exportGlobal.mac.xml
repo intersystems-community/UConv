@@ -21,13 +21,13 @@ Start(ary,link)
   }
   	//Записываем оставшийся кусок
   	if (SockFlag) do file.ReadAny(3) 
-
   	set tempstr2=##class(Globals.Utils).Encode(buffer)
-  	  	set trashStr =tempstr2
+  	set trashStr =tempstr2
   	f i=1:1:($$$BLOCKSIZE-$l(tempstr2)) {set trashStr=(trashStr_"0")}
 	do file.Write(trashStr)
 	set blocksWritten = blocksWritten+1
 	if (SockFlag) do file.ReadAny(3) 
+	d file.Write("")
   WRITE !,"Finished. Blocks written: ", blocksWritten
   if ('SockFlag) { d file.%Save() }
   else { d sock.Close() }
