@@ -20,7 +20,7 @@ Start(ary,link)
 			SET queryary=$QUERY(@queryary)  	
   }
   	//Записываем оставшийся кусок
-  	if (SockFlag) do file.ReadAny(3) 
+  	//if (SockFlag) do file.ReadAny(3) 
   	set tempstr2=##class(Globals.Utils).Encode(buffer)
   	set trashStr =tempstr2
   	f i=1:1:($$$BLOCKSIZE-$l(tempstr2)) {set trashStr=(trashStr_"0")}
