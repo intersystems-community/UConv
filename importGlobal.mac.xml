@@ -8,6 +8,7 @@ Start(link)
 	set file = ##class(%Stream.FileCharacter).%New()
 	set file.Filename=link
 	set buf=""
+	set blockGot=0
 	if (link="")
 	{
 		// Via socket
@@ -18,6 +19,7 @@ Start(link)
     	do sock.Listen()
     	do	{	
     		set s=sock.ReadAny($$$BLOCKSIZE, 3)
+    		set blockGot=$increment(blockGot)
     		set s=##class(Globals.Utils).decode(s)
     		set buf=(buf_s) 
     		while ($f(buf,$$$NL)>0) 
@@ -29,7 +31,7 @@ Start(link)
 	    		}
 	    	do sock.Write($c(1,1,1))
     		}
-    		while(sock.IsConnected)
+    		while(s'="")
     		do sock.Close()
 	} else {w "CANT CREATE SOCK",!}
 	}
@@ -48,6 +50,6 @@ Start(link)
 			}
 		}
 	
-	w "Successfully imported!"
+	w "Successfully imported!",!,"Blocks got: ",blockGot
 ]]></Routine>
 </Export>

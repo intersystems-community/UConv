@@ -64,7 +64,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	for  {
 	set extr=$extract(inpt,i,i+3)
 	q:(extr="")
-	set buf=buf_$c($a($zconvert($c($zh(extr)),"i","CP1251"))) //}
+	set buf=buf_$c($a($zconvert($c($zh(extr)),"i","CP1251")))
 	set i=i+4
 	}
 	q buf
