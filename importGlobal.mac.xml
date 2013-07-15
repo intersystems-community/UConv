@@ -18,7 +18,7 @@ Start(link)
 
     	do sock.Listen()
     	do	{	
-    		set s=sock.ReadAny($$$BLOCKSIZE, 3)
+    		set s=sock.Read($$$BLOCKSIZE, 3)
     		set blockGot=$increment(blockGot)
     		set s=##class(Globals.Utils).decode(s)
     		set buf=(buf_s) 
@@ -26,8 +26,7 @@ Start(link)
     			{
 	    			q:buf=$$$NL
 	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3)) //все ок, NL не может быть в начале пакета
-	    			set buf=$e(buf,$f(buf,$$$NL),*)
-	    				
+	    			set buf=$e(buf,$f(buf,$$$NL),*)	
 	    		}
 	    	do sock.Write($c(1,1,1))
     		}
