@@ -18,7 +18,12 @@ Start(link)
 
     	do sock.Listen()
     	do	{	
-    		set s=sock.Read($$$BLOCKSIZE, 3)
+    		set ttt=sock.Read(4, -1)
+    		set ll=""
+    		for i=1:2:$l(ttt) set ll=ll_$c($zh($e(ttt,i,i+1)))
+    		set l=##class(Globals.Utils).WordToValue(ll)
+    		do sock.Write($c(1,1,1))
+    		set s=sock.Read(l, -1)
     		set blockGot=$increment(blockGot)
     		set s=##class(Globals.Utils).decode(s)
     		set buf=(buf_s) 

@@ -4,5 +4,12 @@
 #define BLOCKSIZE  32768
 #define NL  $c($zh("0d"),$zh("0a"))
 #define SYMBOLSPERCHAR 4
+#define PACKETLENGTH 2
+#define DATATYPE 2
+#define SYSBYTES $$$PACKETLENGTH+$$$DATATYPE
+#define THISISREG ##class(Globals.Utils).ValueToWord(16)
+#define THISISBIT ##class(Globals.Utils).ValueToWord(32)
+#define THISISLIST ##class(Globals.Utils).ValueToWord(64)
+
 ]]></Routine>
 </Export>

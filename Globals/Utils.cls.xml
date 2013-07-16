@@ -19,17 +19,39 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		set i=1
 		for  
 			{
-		  	set tempstr=$e(queryary,i,i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)-1)
-		  	q:($l(tempstr)<($$$BLOCKSIZE/$$$SYMBOLSPERCHAR - $l(buffer))) 	//выход если можем записать в буффер
-		  	set i=i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)
+		  	set tempstr=$e(queryary,i,i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)-$$$SYSBYTES-1)
+		  	q:($l(tempstr)<($$$BLOCKSIZE/$$$SYMBOLSPERCHAR - $l(buffer)-$$$SYSBYTES)) 	//выход если можем записать в буффер
+		  	set i=i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)-$$$SYSBYTES
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
 		  	set tempstr2=##class(Globals.Utils).Encode(tempstr)
+		  	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
+		  	set ll=""
+		  	for i=1:1:$l(length) 
+		  	{
+			  	if ($zh($a($e(length,i)))="0") { set ll=ll_"00" }
+			  	else {set ll=ll_$zh($a($e(length,i)))}
+		  	}
+			do file.Write(ll, $$$YES)
+			if (sf) do file.ReadAny(3)
 			do file.Write(tempstr2, $$$YES)
 			set blockWritten = (blockWritten+1) 
 		  	if (sf) do file.ReadAny(3)
 	  		}
 	  set buffer=buffer_tempstr
 	  q blockWritten
+]]></Implementation>
+</Method>
+
+<Method name="toFour">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>t:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	if (t="") return "0000" //Можно ли?
+	if ($l(t) =1) {s t="000"_t}
+	elseif ($l(t) =2) {s t="00"_t}
+	elseif ($l(t) =3) {s t="0"_t}
+	q t
 ]]></Implementation>
 </Method>
 
@@ -44,9 +66,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	set extr=$extract(inpt,i)
 	q:(extr="")
 	set t=$ZHEX($A($ZConvert(extr,"O","CP1251")))
-	if ($l(t) =1) {s t="000"_t}
-	elseif ($l(t) =2) {s t="00"_t}
-	elseif ($l(t) =3) {s t="0"_t}
+	set t=##class(Globals.Utils).toFour(t)
 	set buf=buf_t
 	set i=i+1
 	}
@@ -102,19 +122,40 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <FormalSpec>str:%String</FormalSpec>
 <Implementation><![CDATA[
 	try{
+	set dType=$e(str,1)
+	set str=$e(str,2,*)
+	
 	set globalName="",globalVal="",globalIndex=""
 	set globalName = $e(str,2,($f(str,"(")-2)) 
 	set globalVal = $e(str,($f(str,"||")), *)
 	if (($f(str,"||")>$f(str,"(")) &&  ($f(str,"(")>0)){
 	set globalIndex = $e(str,$f(str,"("),($f(str,"||")-4))
+	if (dType'="b")
+	{
 	set @("^"_globalName_"("_globalIndex_")") =##class(Globals.Utils).lbCreate(globalVal)
 	}
 	else {
+		
+		for i=1:1:$l(globalVal) {set $bit(bitStr,i)=$e(globalVal,i)}
+		set @("^"_globalName_"("_globalIndex_")") =bitStr
+	}
+	}
+	else {
 		set globalName = $e(str,2,($f(str,"||")-3)) 
+		if (dType'="b")
+	{
 		set @("^"_globalName) =##class(Globals.Utils).lbCreate(globalVal)
+		}
+	else {
+		set bitStr=""
+		for i=1:1:$l(globalVal) {set $bit(bitStr,i)=$e(globalVal,i)}
+		set @("^"_globalName) =bitStr
+	}
 	
 	}
+	
 	}
+	
 	catch {}
 ]]></Implementation>
 </Method>
@@ -142,11 +183,21 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	set blockWritten=0
 	 if ($LISTVALID(@queryarr)&&(@queryarr'="")){
 		 		set fsfff=##class(Globals.Utils).listToString(@queryarr)
-		 		set tempstr=queryarr_"||"_fsfff_$$$NL
+		 		set tempstr="l"_queryarr_"||"_fsfff_$$$NL
 		       q tempstr
        	}
        	else {
-	       set tempstr=queryarr_"||"_""""_(@queryarr)_""""_$$$NL
+	       try {
+		       if (@queryarr="") throw
+		       set bitString="" 
+	       		for i=1:1:$bitcount(@queryarr) {
+		       		set bitString = bitString_($bit(@queryarr,i)_"")
+	       		} 
+	       		set tempstr="b"_queryarr_"||"_bitString_$$$NL
+	       		}
+	       catch {
+	       set tempstr="r"_queryarr_"||"_""""_(@queryarr)_""""_$$$NL
+	       }
 	       q tempstr
 	        }
 ]]></Implementation>
@@ -155,8 +206,8 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <Method name="Compare">
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
-	Set g1=$Name(^WebER.Data.LabOrderD)
-	Set g2=$Name(^|"TEST"|WebER.Data.LabOrderD)
+	Set g1=$Name(^WebER.Data.LabOrderI)
+	Set g2=$Name(^|"TEST"|WebER.Data.LabOrderI)
 	Set res=$Name(^XXX)
 	Set (cnt1,cnt2)=0
 	Kill @res
@@ -173,6 +224,24 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		If '$Data(@g1@(i)) Set @res@(2,i)="",cnt2=cnt2+1
 	}
 	Write cnt1,!,cnt2
+]]></Implementation>
+</Method>
+
+<Method name="ValueToWord">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pValue</FormalSpec>
+<Implementation><![CDATA[
+ If (pValue<0)||(pValue>65535) Set pValue=0
+ Quit $Extract($ZLChar(pValue),1,2)
+]]></Implementation>
+</Method>
+
+<Method name="WordToValue">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pValue</FormalSpec>
+<Implementation><![CDATA[
+ If $Length(pValue)'=2 Quit 0
+ Quit $ZLASCII(pValue_$Char(0,0))
 ]]></Implementation>
 </Method>
 </Class>
