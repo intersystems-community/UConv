@@ -18,10 +18,10 @@ Start(link)
 
     	do sock.Listen()
     	do	{	
-    		set ttt=sock.Read(4, -1)
-    		set ll=""
-    		for i=1:2:$l(ttt) set ll=ll_$c($zh($e(ttt,i,i+1)))
-    		set l=##class(Globals.Utils).WordToValue(ll)
+    		//packetSize - 2+2 символа = 1+1 БАЙТ
+    		set packetSize=sock.Read($$$PACKETLENGTH, -1),ll=""
+    		for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))
+    		set l=##class(Globals.Utils).WordToValue(ll) //получили длину пакета
     		do sock.Write($c(1,1,1))
     		set s=sock.Read(l, -1)
     		set blockGot=$increment(blockGot)
@@ -42,12 +42,14 @@ Start(link)
 	else 
 		{
 		while ('file.AtEnd) {
-			set s = file.Read($$$BLOCKSIZE)
-			
+			set l=file.Read($$$PACKETLENGTH)
+			set s = file.Read($$$BLOCKSIZE - $$$PACKETLENGTH)
+			set blockGot=$increment(blockGot)
 			set s=##class(Globals.Utils).decode(s)
     		set buf=buf_s
     		while ($f(buf,$$$NL)>0) 
     			{
+	    			q:buf=$$$NL
 	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3))
 	    			set buf=$e(buf,$f(buf,$$$NL),*)	    		
 	    		}

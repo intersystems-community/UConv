@@ -20,11 +20,19 @@ Start(ary,link)
 			SET queryary=$QUERY(@queryary)  	
   }
   	//Записываем оставшийся кусок
-  	//if (SockFlag) do file.ReadAny(3) 
   	set tempstr2=##class(Globals.Utils).Encode(buffer)
-  	set trashStr =tempstr2
-  	f i=1:1:($$$BLOCKSIZE-$l(tempstr2)) {set trashStr=(trashStr_"0")}
-	do file.Write(trashStr)
+	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
+	set ll=""
+	for i=1:1:$l(length) 
+		  	{
+			  	if ($zh($a($e(length,i)))="0") { set ll=ll_"00" }
+			  	else {set ll=ll_$zh($a($e(length,i)))}
+		  	}
+	if (SockFlag) {do file.Write(ll, $$$YES)}
+	else  {do file.Write(ll)}
+	if (SockFlag) do file.ReadAny(3)
+	if (SockFlag) {do file.Write(tempstr2, $$$YES)}
+	else  {do file.Write(tempstr2)}
 	set blocksWritten = blocksWritten+1
 	if (SockFlag) do file.ReadAny(3) 
 	d file.Write("")

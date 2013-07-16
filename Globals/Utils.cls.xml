@@ -23,17 +23,20 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		  	q:($l(tempstr)<($$$BLOCKSIZE/$$$SYMBOLSPERCHAR - $l(buffer)-$$$SYSBYTES)) 	//выход если можем записать в буффер
 		  	set i=i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)-$$$SYSBYTES
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
-		  	set tempstr2=##class(Globals.Utils).Encode(tempstr)
-		  	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
+		  	set tempstr2=..Encode(tempstr)
+		  	set length=..ValueToWord($l(tempstr2))
 		  	set ll=""
 		  	for i=1:1:$l(length) 
 		  	{
 			  	if ($zh($a($e(length,i)))="0") { set ll=ll_"00" }
 			  	else {set ll=ll_$zh($a($e(length,i)))}
 		  	}
-			do file.Write(ll, $$$YES)
+		  	if (sf) { do file.Write(ll, $$$YES) }
+		  	else {do file.Write(ll) }
 			if (sf) do file.ReadAny(3)
-			do file.Write(tempstr2, $$$YES)
+			
+			if (sf) { do file.Write(tempstr2, $$$YES) }
+		  	else { do file.Write(tempstr2)}
 			set blockWritten = (blockWritten+1) 
 		  	if (sf) do file.ReadAny(3)
 	  		}
@@ -66,7 +69,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	set extr=$extract(inpt,i)
 	q:(extr="")
 	set t=$ZHEX($A($ZConvert(extr,"O","CP1251")))
-	set t=##class(Globals.Utils).toFour(t)
+	set t=..toFour(t)
 	set buf=buf_t
 	set i=i+1
 	}
@@ -101,7 +104,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	if ($LISTVALID(str)&&(str'="")) {
 		while ($LISTNEXT(str,ptr,nextElem)){
 			if ($LISTVALID($get(nextElem))&&($get(nextElem)'="")) {
-				set ttTT = ##class(Globals.Utils).listToString(nextElem)
+				set ttTT =..listToString(nextElem)
 				set retVal=retVal_ttTT_","
 			}
 			else{
@@ -129,28 +132,35 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	set globalName = $e(str,2,($f(str,"(")-2)) 
 	set globalVal = $e(str,($f(str,"||")), *)
 	if (($f(str,"||")>$f(str,"(")) &&  ($f(str,"(")>0)){
-	set globalIndex = $e(str,$f(str,"("),($f(str,"||")-4))
-	if (dType'="b")
-	{
-	set @("^"_globalName_"("_globalIndex_")") =##class(Globals.Utils).lbCreate(globalVal)
+		//У узла есть индекс
+		set globalIndex = $e(str,$f(str,"("),($f(str,"||")-4))
+		if (dType'="b")
+		{
+			if (dType="l")
+			{
+				set @("^"_globalName_"("_globalIndex_")") =..lbCreate(globalVal)
+			}
+			else {set @("^"_globalName_"("_globalIndex_")") =globalVal}
+	
+		}
+		else {
+			for i=1:1:$l(globalVal) {set $bit(bitStr,i)=$e(globalVal,i)}
+			set @("^"_globalName_"("_globalIndex_")") =bitStr
+		}
 	}
 	else {
-		
-		for i=1:1:$l(globalVal) {set $bit(bitStr,i)=$e(globalVal,i)}
-		set @("^"_globalName_"("_globalIndex_")") =bitStr
-	}
-	}
-	else {
+		//У узла нет индекса - ^name=val
 		set globalName = $e(str,2,($f(str,"||")-3)) 
 		if (dType'="b")
-	{
-		set @("^"_globalName) =##class(Globals.Utils).lbCreate(globalVal)
+		{
+			if (dType="l"){set @("^"_globalName) =..lbCreate(globalVal)}
+			else{set @("^"_globalName) =globalVal}
 		}
-	else {
-		set bitStr=""
-		for i=1:1:$l(globalVal) {set $bit(bitStr,i)=$e(globalVal,i)}
-		set @("^"_globalName) =bitStr
-	}
+		else {
+			set bitStr=""
+			for i=1:1:$l(globalVal) {set $bit(bitStr,i)=$e(globalVal,i)}
+			set @("^"_globalName) =bitStr
+		}
 	
 	}
 	
@@ -182,12 +192,14 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <Implementation><![CDATA[
 	set blockWritten=0
 	 if ($LISTVALID(@queryarr)&&(@queryarr'="")){
-		 		set fsfff=##class(Globals.Utils).listToString(@queryarr)
-		 		set tempstr="l"_queryarr_"||"_fsfff_$$$NL
+		 		//Углубляемся в список
+		 		set value=..listToString(@queryarr)
+		 		set tempstr="l"_queryarr_"||"_value_$$$NL
 		       q tempstr
        	}
        	else {
 	       try {
+		       //БИТОВАЯ СТРОКА?
 		       if (@queryarr="") throw
 		       set bitString="" 
 	       		for i=1:1:$bitcount(@queryarr) {
@@ -196,6 +208,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	       		set tempstr="b"_queryarr_"||"_bitString_$$$NL
 	       		}
 	       catch {
+		       //Оставшийся вариант - обычное значение
 	       set tempstr="r"_queryarr_"||"_""""_(@queryarr)_""""_$$$NL
 	       }
 	       q tempstr
