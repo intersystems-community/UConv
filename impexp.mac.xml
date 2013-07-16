@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Routine name="impexp" type="MAC" languagemode="0"><![CDATA[
-Start
+Start()
 	w #, "Welcome to import/export utility for Cache Globals"
-	do {r !, "What do you wanna to do? Type(import/export) :", job}
-	while ((job'="import")&&(job'="export"))
+	do {r !, "What do you wanna to do? Type(import/export/jobfromfile) :", job}
+	while ((job'="import")&&(job'="export")&&(job'="jobfromfile"))
 	if (job="import") { GOTO Import }
-	else { GOTO Export }
+	elseif (job="export") { GOTO Export }
+	else {GOTO FromFile}
 	Quit
 	
 Import
@@ -23,6 +24,23 @@ Export
 				d ^exportGlobal(glob,link)
 	Quit
 	
-	
+FromFile
+	w #, "Settings from file:"
+	w !, "Type in filename, where the settings are stored: "
+	r filename
+	set filet = ##class(%Stream.FileCharacter).%New()
+	set filet.Filename=filename
+	while('filet.AtEnd)
+	{
+		set str = filet.ReadLine()
+		if ($e(str,1,2)="im") {
+			d ^importGlobal($e(str,8,*))
+			w !,"Global ", $e(str,8,*), " imported",!
+			} 
+		else {
+			d ^exportGlobal($e(str,8,$f(str,",")-2),$e(str,$f(str,","),*))
+			w !,"Global ", $e(str,8,$f(str,",")-2), " exported",!
+			}
+	}
 ]]></Routine>
 </Export>
