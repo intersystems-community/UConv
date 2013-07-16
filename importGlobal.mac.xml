@@ -56,6 +56,6 @@ Start(link)
 			}
 		}
 	
-	w "Successfully imported!",!,"Blocks got: ",blockGot
+	w "Successfully imported!",!,"Blocks got: ",blockGot-1
 ]]></Routine>
 </Export>
