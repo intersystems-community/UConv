@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Routine name="impexp" type="MAC" languagemode="0"><![CDATA[
+#include Globs
+#include %occStatus
 Start
 	w #
 	  WRITE $TEXT(TextLabel+1),!
@@ -38,10 +40,24 @@ WriteSect
 				} while('$listlength(GlobList))
 				r !,"Write filename or IP(port 7001): ", link
 				if (link="q") GOTO WriteSect
+				
+
+	set SockFlag=0			
+  	SET file = ##class(%Stream.FileCharacter).%New()
+  	set file.Filename=link
+  	if ('(file.IsNull())) { d file.MoveToEnd() }
+  	SET blocksWritten = 0, buffer=""
+  	set file.RemoveOnClose=0
+  	set sock=##class(%IO.Socket).%New(), sock.TranslationTable="UTF8"
+  	do sock.Open(link,"7031",1,.sc)
+  	if ($$$ISOK(sc)) { set file=sock, SockFlag=1 }
+  
+  
 				set ptr=0
 				while ($LISTNEXT(GlobList,ptr,val)) {
-					d ^exportGlobal("^"_val,link)
+					do ^exportGlobal("^"_val,file,SockFlag,.buffer)
 					}
+					do Final^exportGlobal("^"_val,.file,SockFlag,.buffer)
 				
 	Quit
 	

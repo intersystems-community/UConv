@@ -5,6 +5,7 @@
 #include %occStatus
 #include %occMessages
 Start(link)
+			set curGl=""
 	set file = ##class(%Stream.FileCharacter).%New()
 	set file.Filename=link
 	set buf=""
@@ -30,7 +31,7 @@ Start(link)
     		while ($f(buf,$$$NL)>0) 
     			{
 	    			q:buf=$$$NL
-	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3)) //все ок, NL не может быть в начале пакета
+	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3),.curGl) //все ок, NL не может быть в начале пакета
 	    			set buf=$e(buf,$f(buf,$$$NL),*)	
 	    		}
 	    	do sock.Write($c(1,1,1))
@@ -41,7 +42,7 @@ Start(link)
 	}
 	else 
 		{
-			set curGl=""
+
 		while ('file.AtEnd) {
 			set packetSize=file.Read($$$PACKETLENGTH),ll=""
     		for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))

@@ -130,7 +130,6 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 	set globalName="",globalVal="",globalIndex=""
 	set globalName = $e(str,2,($f(str,"(")-2)) 
-	if ($get(curGl)'=globalName) { w !,"Processing ^",globalName set curGl=globalName}
 	set globalVal = $e(str,($f(str,"||")), *)
 	if (($f(str,"||")>$f(str,"(")) &&  ($f(str,"(")>0)){
 		//У узла есть индекс
@@ -164,6 +163,11 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		}
 	
 	}
+	
+	if ($get(curGl)'=globalName) {
+		 w !,"Processing ^",globalName 
+		 set curGl=globalName
+		 }
 	
 	}
 	

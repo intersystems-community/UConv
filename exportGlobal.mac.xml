@@ -3,23 +3,21 @@
 <Routine name="exportGlobal" type="MAC" languagemode="0"><![CDATA[
 #include Globs
 #include %occStatus
-Start(ary,link)  
-  w !, "Going to export ",ary," to ",link 
-  set SockFlag=0
-  SET file = ##class(%Stream.FileCharacter).%New()
-  set file.Filename=link
-  if ('(file.IsNull())) { d file.MoveToEnd() }
-  SET blocksWritten = 0, buffer=""
-  set file.RemoveOnClose=0
-  set sock=##class(%IO.Socket).%New(), sock.TranslationTable="UTF8"
-  do sock.Open(link,"7031",1,.sc)
-  if ($$$ISOK(sc)) { set file=sock, SockFlag=1 }
+Start(ary,file,SockFlag, buffer) 
+	w !, "Going to export ",ary," to ",link,! 
   set queryary=ary
   try {set TrashValue=@queryary} catch {set queryary = $QUERY(@queryary)} //
+  set oldBW=""
   FOR   {
         	q:queryary=""  
         	set node = ##class(Globals.Utils).nodeToStr(queryary) //получаем 1 строчку из 1 узла
 	       	set blocksWritten = (blocksWritten + ##class(Globals.Utils).ChunkAndSend(node,.buffer, file, SockFlag))	//обрабатываем строчку(encode + ->buf/->send)
+			if (blocksWritten>(oldBW+$$$BLOCKTICK))
+			{
+				set oldBW=blocksWritten
+				w $c(13), "                                          "
+				w $c(13),"Current blocks sent :", $c(9),blocksWritten
+			}
 			SET queryary=$QUERY(@queryary)  	
   }
   	//Записываем оставшийся кусок
@@ -40,10 +38,12 @@ Start(ary,link)
 		  	else { do file.Write(tempstr2)}
 			set blocksWritten = (blocksWritten+1) 
 		  	if (SockFlag) do file.ReadAny(3)
+		  	w "..finished, blocks: ", blocksWritten
+		  	q 
 		  	
-		  	
+Final(ary,file,SockFlag,buffer) 
 	d file.Write("")
-  WRITE !,"Finished. Blocks written: ", blocksWritten
+  WRITE !,"Finished."
   if ('SockFlag) { d file.%Save() }
   else { d sock.Close() }
   d file.%Close()

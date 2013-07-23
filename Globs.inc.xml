@@ -10,6 +10,6 @@
 #define THISISREG ##class(Globals.Utils).ValueToWord(16)
 #define THISISBIT ##class(Globals.Utils).ValueToWord(32)
 #define THISISLIST ##class(Globals.Utils).ValueToWord(64)
-
+#define BLOCKTICK 10
 ]]></Routine>
 </Export>
