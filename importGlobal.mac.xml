@@ -41,6 +41,7 @@ Start(link)
 	}
 	else 
 		{
+			set curGl=""
 		while ('file.AtEnd) {
 			set packetSize=file.Read($$$PACKETLENGTH),ll=""
     		for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))
@@ -52,12 +53,12 @@ Start(link)
     		while ($f(buf,$$$NL)>0) 
     			{
 	    			q:buf=$$$NL
-	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3))
+	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3),.curGl)
 	    			set buf=$e(buf,$f(buf,$$$NL),*)	    		
 	    		}
 			}
 		}
 	
-	w "Successfully imported!",!,"Blocks got: ",blockGot-1
+	w !,"Successfully imported!",!,"Blocks got: ",blockGot-1
 ]]></Routine>
 </Export>

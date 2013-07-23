@@ -122,7 +122,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 
 <Method name="executeString">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>str:%String</FormalSpec>
+<FormalSpec>str:%String,curGl:%String</FormalSpec>
 <Implementation><![CDATA[
 	try{
 	set dType=$e(str,1)
@@ -130,6 +130,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 	set globalName="",globalVal="",globalIndex=""
 	set globalName = $e(str,2,($f(str,"(")-2)) 
+	if ($get(curGl)'=globalName) { w !,"Processing ^",globalName set curGl=globalName}
 	set globalVal = $e(str,($f(str,"||")), *)
 	if (($f(str,"||")>$f(str,"(")) &&  ($f(str,"(")>0)){
 		//У узла есть индекс
@@ -273,9 +274,11 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	set tick=tick+1
   	Set glb=$Piece(rset.GetData(1),"(",1)
   	If ('pSystemGlobals)&&($Extract(glb,1,$Length("Ens."))="Ens.") Continue
-  	If glb'="" set $list(out,tick)=glb
+  	If (glb'="") {set $list(out,tick)=glb}
  	}
- q out
+ if ($listdata(out,1))
+  {quit out} 
+  else {quit ""}
 ]]></Implementation>
 </Method>
 </Class>

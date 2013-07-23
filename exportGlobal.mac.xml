@@ -4,6 +4,7 @@
 #include Globs
 #include %occStatus
 Start(ary,link)  
+  w !, "Going to export ",ary," to ",link 
   set SockFlag=0
   SET file = ##class(%Stream.FileCharacter).%New()
   set file.Filename=link

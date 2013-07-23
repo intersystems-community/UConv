@@ -1,27 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Routine name="impexp" type="MAC" languagemode="0"><![CDATA[
-Start()
-	w #, "Welcome to import/export utility for Cache Globals"
-	do {r !, "What do you wanna to do? Type(import/export/jobfromfile) :", job}
-	while ((job'="import")&&(job'="export")&&(job'="jobfromfile"))
-	if (job="import") { GOTO Import }
-	elseif (job="export") { GOTO Export }
-	else {GOTO FromFile}
+Start
+	w #
+	  WRITE $TEXT(TextLabel+1),!
+	  WRITE $TEXT(TextLabel+2),!
+	  WRITE $TEXT(TextLabel+3),!
+	  w $TEXT(TextLabel+4),! 
+	  w $TEXT(TextLabel+5),! 
+	  w $TEXT(TextLabel+6),! 
+	do {w $TEXT(TextLabel+7) r job,! }
+	while ((job'="1")&&(job'="2")&&(job'="3")&&(job'="q"))
+	if (job="2") { GOTO Import }
+	elseif (job="1") { GOTO Export }
+	elseif (job="3") {GOTO FromFile}
+	else {w "bye!"}
 	Quit
 	
 Import
-	w #, "Import section:"
+	w "Import section:"
 	w !, "Type in filename or type nothing to create socket server: "
 	r filename
+	if (filename="q") GOTO Start
 	d ^importGlobal(filename)
 	Quit
 	
 Export
-	w #, "Export section:"
+	w "Export section:"
+	set GlobList=""
+				do
+				{
+WriteSect
 				r !,"Write name of global: ", glob
-				r !,"Write filename or IP(port 7001): ", link
+				if (glob="q") GOTO Start
 				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList("DEV",glob,0)
+				w !, "You have chosen ",$listlength(GlobList), " globals",!
+				} while('$listlength(GlobList))
+				r !,"Write filename or IP(port 7001): ", link
+				if (link="q") GOTO WriteSect
 				set ptr=0
 				while ($LISTNEXT(GlobList,ptr,val)) {
 					d ^exportGlobal("^"_val,link)
@@ -47,5 +63,17 @@ FromFile
 			w !,"Global ", $e(str,8,$f(str,",")-2), " exported",!
 			}
 	}
+	Quit
+	
+TextLabel /*****************************
+Welcome to the Export/Import master
+It helps to transfer globals between 8bit- && 16bit- versions of Cache
+Choose what you want to do?
+1) Export Section
+2) Import Section
+3) Choose file with settings
+Your action:
+*****************************/ 
+quit
 ]]></Routine>
 </Export>
