@@ -10,7 +10,6 @@ Start(ary,link)
   if ('(file.IsNull())) { d file.MoveToEnd() }
   SET blocksWritten = 0, buffer=""
   set file.RemoveOnClose=0
-  d 
   set sock=##class(%IO.Socket).%New(), sock.TranslationTable="UTF8"
   do sock.Open(link,"7031",1,.sc)
   if ($$$ISOK(sc)) { set file=sock, SockFlag=1 }

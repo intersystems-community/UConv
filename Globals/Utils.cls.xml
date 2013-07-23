@@ -209,7 +209,8 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	       		}
 	       catch {
 		       //Оставшийся вариант - обычное значение
-	       set tempstr="r"_queryarr_"||"_""""_(@queryarr)_""""_$$$NL
+		       
+	       set tempstr="r"_queryarr_"||"_(@queryarr)_$$$NL //здесь """"
 	       }
 	       q tempstr
 	        }
