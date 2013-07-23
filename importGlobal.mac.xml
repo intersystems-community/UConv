@@ -42,8 +42,10 @@ Start(link)
 	else 
 		{
 		while ('file.AtEnd) {
-			set l=file.Read($$$PACKETLENGTH)
-			set s = file.Read($$$BLOCKSIZE - $$$PACKETLENGTH)
+			set packetSize=file.Read($$$PACKETLENGTH),ll=""
+    		for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))
+    		set l=##class(Globals.Utils).WordToValue(ll) //получили длину пакета
+			set s = file.Read(l)
 			set blockGot=$increment(blockGot)
 			set s=##class(Globals.Utils).decode(s)
     		set buf=buf_s

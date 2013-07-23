@@ -26,10 +26,10 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		  	set tempstr2=..Encode(tempstr)
 		  	set length=..ValueToWord($l(tempstr2))
 		  	set ll=""
-		  	for i=1:1:$l(length) 
+		  	for j=1:1:$l(length) 
 		  	{
-			  	if ($zh($a($e(length,i)))="0") { set ll=ll_"00" }
-			  	else {set ll=ll_$zh($a($e(length,i)))}
+			  	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
+			  	else {set ll=ll_$zh($a($e(length,j)))}
 		  	}
 		  	if (sf) { do file.Write(ll, $$$YES) }
 		  	else {do file.Write(ll) }
@@ -255,6 +255,26 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <Implementation><![CDATA[
  If $Length(pValue)'=2 Quit 0
  Quit $ZLASCII(pValue_$Char(0,0))
+]]></Implementation>
+</Method>
+
+<Method name="NameSpaceGlobalList">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNameSpace,pMask,pSystemGlobals</FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+	set out=$lb()
+	set tick=0
+ 	Set rset=##class(%ResultSet).%New("%SYS.GlobalQuery:NameSpaceList")
+ 	Set sc=rset.Execute(pNameSpace,pMask,pSystemGlobals)
+ 	While (rset.Next()) {
+	
+	set tick=tick+1
+  	Set glb=$Piece(rset.GetData(1),"(",1)
+  	If ('pSystemGlobals)&&($Extract(glb,1,$Length("Ens."))="Ens.") Continue
+  	If glb'="" set $list(out,tick)=glb
+ 	}
+ q out
 ]]></Implementation>
 </Method>
 </Class>

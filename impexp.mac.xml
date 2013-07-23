@@ -21,7 +21,12 @@ Export
 	w #, "Export section:"
 				r !,"Write name of global: ", glob
 				r !,"Write filename or IP(port 7001): ", link
-				d ^exportGlobal(glob,link)
+				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList("DEV",glob,0)
+				set ptr=0
+				while ($LISTNEXT(GlobList,ptr,val)) {
+					d ^exportGlobal("^"_val,link)
+					}
+				
 	Quit
 	
 FromFile

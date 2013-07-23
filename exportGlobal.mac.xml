@@ -6,8 +6,11 @@
 Start(ary,link)  
   set SockFlag=0
   SET file = ##class(%Stream.FileCharacter).%New()
+  set file.Filename=link
+  if ('(file.IsNull())) { d file.MoveToEnd() }
   SET blocksWritten = 0, buffer=""
-  set file.Filename=link, file.RemoveOnClose=0
+  set file.RemoveOnClose=0
+  d 
   set sock=##class(%IO.Socket).%New(), sock.TranslationTable="UTF8"
   do sock.Open(link,"7031",1,.sc)
   if ($$$ISOK(sc)) { set file=sock, SockFlag=1 }
@@ -20,26 +23,31 @@ Start(ary,link)
 			SET queryary=$QUERY(@queryary)  	
   }
   	//Записываем оставшийся кусок
-  	set tempstr2=##class(Globals.Utils).Encode(buffer)
-	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
-	set ll=""
-	for i=1:1:$l(length) 
+  
+	set tempstr2=##class(Globals.Utils).Encode(buffer)
+		  	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
+		  	set ll=""
+		  	for j=1:1:$l(length) 
 		  	{
-			  	if ($zh($a($e(length,i)))="0") { set ll=ll_"00" }
-			  	else {set ll=ll_$zh($a($e(length,i)))}
+			  	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
+			  	else {set ll=ll_$zh($a($e(length,j)))}
 		  	}
-	if (SockFlag) {do file.Write(ll, $$$YES)}
-	else  {do file.Write(ll)}
-	if (SockFlag) do file.ReadAny(3)
-	if (SockFlag) {do file.Write(tempstr2, $$$YES)}
-	else  {do file.Write(tempstr2)}
-	set blocksWritten = blocksWritten+1
-	if (SockFlag) do file.ReadAny(3) 
+		  	if (SockFlag) { do file.Write(ll, $$$YES) }
+		  	else {do file.Write(ll) }
+			if (SockFlag) do file.ReadAny(3)
+			
+			if (SockFlag) { do file.Write(tempstr2, $$$YES) }
+		  	else { do file.Write(tempstr2)}
+			set blocksWritten = (blocksWritten+1) 
+		  	if (SockFlag) do file.ReadAny(3)
+		  	
+		  	
 	d file.Write("")
   WRITE !,"Finished. Blocks written: ", blocksWritten
   if ('SockFlag) { d file.%Save() }
   else { d sock.Close() }
   d file.%Close()
+  k file
   
 ]]></Routine>
 </Export>
