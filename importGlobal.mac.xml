@@ -45,7 +45,8 @@ Start(link)
 
 		while ('file.AtEnd) {
 			set packetSize=file.Read($$$PACKETLENGTH),ll=""
-    		for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))
+    		//for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))
+    		set ll=##class(Globals.Utils).decode(packetSize)
     		set l=##class(Globals.Utils).WordToValue(ll) //получили длину пакета
 			set s = file.Read(l)
 			set blockGot=$increment(blockGot)
@@ -60,6 +61,6 @@ Start(link)
 			}
 		}
 	
-	w !,"Successfully imported!",!,"Blocks got: ",blockGot-1
+	w !,"Successfully imported!",!,"Blocks got: ",blockGot
 ]]></Routine>
 </Export>

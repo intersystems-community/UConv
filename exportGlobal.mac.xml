@@ -4,6 +4,7 @@
 #include Globs
 #include %occStatus
 Start(ary,file,SockFlag, buffer) 
+	set buffer=""
 	w !, "Going to export ",ary," to ",link,! 
   set queryary=ary
   try {set TrashValue=@queryary} catch {set queryary = $QUERY(@queryary)} //
@@ -24,12 +25,13 @@ Start(ary,file,SockFlag, buffer)
   
 	set tempstr2=##class(Globals.Utils).Encode(buffer)
 		  	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
-		  	set ll=""
-		  	for j=1:1:$l(length) 
-		  	{
-			  	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
-			  	else {set ll=ll_$zh($a($e(length,j)))}
-		  	}
+		  	set ll=##class(Globals.Utils).Encode(length)
+		  	//set ll=""
+		  	//for j=1:1:$l(length) 
+		  	//{
+			//  	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
+			//  	else {set ll=ll_$zh($a($e(length,j)))}
+		  	//}
 		  	if (SockFlag) { do file.Write(ll, $$$YES) }
 		  	else {do file.Write(ll) }
 			if (SockFlag) do file.ReadAny(3)

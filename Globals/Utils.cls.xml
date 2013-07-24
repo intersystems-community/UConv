@@ -25,12 +25,13 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
 		  	set tempstr2=..Encode(tempstr)
 		  	set length=..ValueToWord($l(tempstr2))
-		  	set ll=""
-		  	for j=1:1:$l(length) 
-		  	{
-			  	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
-			  	else {set ll=ll_$zh($a($e(length,j)))}
-		  	}
+		  	set ll=..Encode(length)
+		  	//set ll=""
+		  	//for j=1:1:$l(length) 
+		  	//{
+			 // 	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
+			 // 	else {set ll=ll_$zh($a($e(length,j)))}
+		  	//}
 		  	if (sf) { do file.Write(ll, $$$YES) }
 		  	else {do file.Write(ll) }
 			if (sf) do file.ReadAny(3)
@@ -126,6 +127,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <Implementation><![CDATA[
 	try{
 	set dType=$e(str,1)
+	if (dType="") {W "ERR NULL dType"}
 	set str=$e(str,2,*)
 	
 	set globalName="",globalVal="",globalIndex=""
@@ -144,6 +146,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 		}
 		else {
+			set bitStr=""
 			for i=1:1:$l(globalVal) {set $bit(bitStr,i)=$e(globalVal,i)}
 			set @("^"_globalName_"("_globalIndex_")") =bitStr
 		}
@@ -164,14 +167,17 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 	}
 	
-	if ($get(curGl)'=globalName) {
+	if (curGl'=globalName) 
+	{
 		 w !,"Processing ^",globalName 
 		 set curGl=globalName
 		 }
 	
 	}
 	
-	catch {}
+	catch {
+		w !,"ERR"
+		}
 ]]></Implementation>
 </Method>
 

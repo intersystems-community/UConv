@@ -46,7 +46,7 @@ WriteSect
   	SET file = ##class(%Stream.FileCharacter).%New()
   	set file.Filename=link
   	if ('(file.IsNull())) { d file.MoveToEnd() }
-  	SET blocksWritten = 0, buffer=""
+  	SET blocksWritten = 0
   	set file.RemoveOnClose=0
   	set sock=##class(%IO.Socket).%New(), sock.TranslationTable="UTF8"
   	do sock.Open(link,"7031",1,.sc)
@@ -55,6 +55,7 @@ WriteSect
   
 				set ptr=0
 				while ($LISTNEXT(GlobList,ptr,val)) {
+					set buffer=""
 					do ^exportGlobal("^"_val,file,SockFlag,.buffer)
 					}
 					do Final^exportGlobal("^"_val,.file,SockFlag,.buffer)
