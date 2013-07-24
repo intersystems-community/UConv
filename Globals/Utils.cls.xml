@@ -169,7 +169,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 	if (curGl'=globalName) 
 	{
-		 w !,"Processing ^",globalName 
+		 w !,"Processing ^",globalName,!
 		 set curGl=globalName
 		 }
 	

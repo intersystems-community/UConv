@@ -5,7 +5,7 @@
 #include %occStatus
 #include %occMessages
 Start(link)
-			set curGl=""
+	set curGl=""
 	set file = ##class(%Stream.FileCharacter).%New()
 	set file.Filename=link
 	set buf=""
@@ -19,16 +19,15 @@ Start(link)
 
     	do sock.Listen()
     	do	{	
-    		//packetSize - 2+2 символа = 1+1 БАЙТ
-    		set packetSize=sock.Read($$$PACKETLENGTH, -1),ll=""
-    		//for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))
-    		//set ll=##class(Globals.Utils).decode(packetSize)
-    		//set l=##class(Globals.Utils).WordToValue(ll) //получили длину пакета
+    		set packetSize=sock.Read($$$PACKETLENGTH, -1)
+    		if (packetSize="") q
     		set l=##class(Globals.Utils).WordToValue($c($zh($e(packetSize,1,4)),$zh($e(packetSize,5,*))))
     		
+    		//Получили длину пакета
     		do sock.Write($c(1,1,1))
     		set s=sock.Read(l, -1)
     		set blockGot=$increment(blockGot)
+    		if (blockGot # $$$BLOCKTICK = 0) w $c(13),"                                    ",$c(13),"Packets read:",blockGot
     		set s=##class(Globals.Utils).decode(s)
     		set buf=(buf_s) 
     		while ($f(buf,$$$NL)>0) 
@@ -54,6 +53,7 @@ Start(link)
 			set l=##class(Globals.Utils).WordToValue($c($zh($e(packetSize,1,4)),$zh($e(packetSize,5,*))))
 			set s = file.Read(l)
 			set blockGot=$increment(blockGot)
+			if (blockGot # $$$BLOCKTICK = 0) w $c(13),"                                    ",$c(13),"Packets read:",blockGot
 			set s=##class(Globals.Utils).decode(s)
     		set buf=buf_s
     		while ($f(buf,$$$NL)>0) 
