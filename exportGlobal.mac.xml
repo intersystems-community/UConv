@@ -26,6 +26,7 @@ Start(ary,file,SockFlag, buffer)
 	set tempstr2=##class(Globals.Utils).Encode(buffer)
 		  	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
 		  	set ll=##class(Globals.Utils).Encode(length)
+		  	if ($l(ll)=4) {set ll=ll_"0000"}
 		  	//set ll=""
 		  	//for j=1:1:$l(length) 
 		  	//{
