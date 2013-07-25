@@ -27,7 +27,7 @@ Start(link)
     		do sock.Write($c(1,1,1))
     		set s=sock.Read(l, -1)
     		set blockGot=$increment(blockGot)
-    		if (blockGot # $$$BLOCKTICK = 0) w $c(13),"                                    ",$c(13),"Packets read:",blockGot
+    		if (blockGot # $$$BLOCKTICK = 0) w $c(13),"                                    ",$c(13),$$$T("Packets read:"),blockGot
     		set s=##class(Globals.Utils).decode(s)
     		set buf=(buf_s) 
     		while ($f(buf,$$$NL)>0) 
@@ -44,16 +44,15 @@ Start(link)
 	}
 	else 
 		{
-
+		if (file.IsNull()) { w !,$$$T("Cannot open file! Please retry!"),! GOTO Import^impexp}
+		set status=0
 		while ('file.AtEnd) {
 			set packetSize=file.Read($$$PACKETLENGTH),ll=""
-    		//for i=1:2:$l(packetSize) set ll=ll_$c($zh($e(packetSize,i,i+1)))
-    		//set ll=##class(Globals.Utils).decode(packetSize)
-    		//set l=##class(Globals.Utils).WordToValue(ll) //получили длину пакета
+			if (packetSize="") q
 			set l=##class(Globals.Utils).WordToValue($c($zh($e(packetSize,1,4)),$zh($e(packetSize,5,*))))
 			set s = file.Read(l)
 			set blockGot=$increment(blockGot)
-			if (blockGot # $$$BLOCKTICK = 0) w $c(13),"                                    ",$c(13),"Packets read:",blockGot
+			if (blockGot # $$$BLOCKTICK = 0) w $c(13),$$$T("                                    "),$c(13),$$$T("Packets read:"),blockGot
 			set s=##class(Globals.Utils).decode(s)
     		set buf=buf_s
     		while ($f(buf,$$$NL)>0) 
@@ -62,9 +61,12 @@ Start(link)
 	    			do ##class(Globals.Utils).executeString($e(buf,1,$f(buf,$$$NL)-3),.curGl)
 	    			set buf=$e(buf,$f(buf,$$$NL),*)	    		
 	    		}
+	    		set status=1
 			}
 		}
 	
-	w !,"Successfully imported!",!,"Blocks got: ",blockGot
+	w !
+	if (status) {w $$$T("Successfully imported!"),!,$$$T("Blocks got: "),blockGot}
+	else {w $$$T("Cannot open file! Please retry!"),!  GOTO Import^impexp}
 ]]></Routine>
 </Export>

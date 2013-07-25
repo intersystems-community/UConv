@@ -3,9 +3,10 @@
 <Routine name="exportGlobal" type="MAC" languagemode="0"><![CDATA[
 #include Globs
 #include %occStatus
+#include %occMessages
 Start(ary,file,SockFlag, buffer) 
 	set buffer=""
-	w !, "Going to export ",ary," to ",link,! 
+	w !, $$$T("Going to export "),ary,$$$T(" to "),link,! 
   set queryary=ary
   try {set TrashValue=@queryary} catch {set queryary = $QUERY(@queryary)} //
   set oldBW=""
@@ -16,8 +17,8 @@ Start(ary,file,SockFlag, buffer)
 			if (blocksWritten>(oldBW+$$$BLOCKTICK))
 			{
 				set oldBW=blocksWritten
-				w $c(13), "                                          "
-				w $c(13),"Current blocks sent :", $c(9),blocksWritten
+				w $c(13), $$$T("                                          ")
+				w $c(13),$$$T("Current blocks sent :"), $c(9),blocksWritten
 			}
 			SET queryary=$QUERY(@queryary)  	
   }
@@ -27,12 +28,7 @@ Start(ary,file,SockFlag, buffer)
 		  	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
 		  	set ll=##class(Globals.Utils).Encode(length)
 		  	if ($l(ll)=4) {set ll=ll_"0000"}
-		  	//set ll=""
-		  	//for j=1:1:$l(length) 
-		  	//{
-			//  	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
-			//  	else {set ll=ll_$zh($a($e(length,j)))}
-		  	//}
+		 
 		  	if (SockFlag) { do file.Write(ll, $$$YES) }
 		  	else {do file.Write(ll) }
 			if (SockFlag) do file.ReadAny(3)
@@ -41,12 +37,12 @@ Start(ary,file,SockFlag, buffer)
 		  	else { do file.Write(tempstr2)}
 			set blocksWritten = (blocksWritten+1) 
 		  	if (SockFlag) do file.ReadAny(3)
-		  	w "..finished, blocks: ", blocksWritten
+		  	w $$$T("..finished, blocks: "), blocksWritten
 		  	q 
 		  	
 Final(ary,file,SockFlag,buffer) 
 	d file.Write("")
-  WRITE !,"Finished."
+  WRITE !,$$$T("Finished.")
   if ('SockFlag) { d file.%Save() }
   else { d sock.Close() }
   d file.%Close()

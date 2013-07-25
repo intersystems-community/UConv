@@ -3,43 +3,45 @@
 <Routine name="impexp" type="MAC" languagemode="0"><![CDATA[
 #include Globs
 #include %occStatus
+#include %occMessages
+
 Start
-	w #
-	  WRITE $TEXT(TextLabel+1),!
-	  WRITE $TEXT(TextLabel+2),!
-	  WRITE $TEXT(TextLabel+3),!
-	  w $TEXT(TextLabel+4),! 
-	  w $TEXT(TextLabel+5),! 
-	  w $TEXT(TextLabel+6),! 
-	do {w $TEXT(TextLabel+7) r job,! }
-	while ((job'="1")&&(job'="2")&&(job'="3")&&(job'="q"))
+	  w #
+	  w $$$T("Welcome to the Export/Import master"),!
+	  w $$$T("It helps to transfer globals between 8bit- && 16bit- versions of Cache") ,!
+	  w $$$T("Choose what you want to do?") ,!
+	  w $$$T("1) Export Section") ,!
+	  w $$$T("2) Import Section") ,!
+	  w $$$T("3) Choose file with settings") ,!
+	do {w $$$T("Your action (q or nothing to exit):") r job,! }
+	while ((job'="1")&&(job'="2")&&(job'="3")&&(job'="q")&&(job'=""))
 	if (job="2") { GOTO Import }
 	elseif (job="1") { GOTO Export }
 	elseif (job="3") {GOTO FromFile}
-	else {w "bye!"}
+	else {w $$$T("bye!")}
 	Quit
 	
 Import
-	w "Import section:"
-	w !, "Type in filename or type nothing to create socket server: "
+	w $$$T("Import section:")
+	w !, $$$T("Type in filename or type nothing to create socket server: ")
 	r filename
 	if (filename="q") GOTO Start
 	d ^importGlobal(filename)
 	Quit
 	
 Export
-	w "Export section:"
+	w $$$T("Export section:")
 	set GlobList=""
 				do
 				{
 WriteSect
-				r !,"Write name of global: ", glob
-				if (glob="q") GOTO Start
-				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList("DEV",glob,0)
-				w !, "You have chosen ",$listlength(GlobList), " globals",!
+				w !, $$$T("Write name of global: ") r glob
+				if (glob="q"||glob="") GOTO Start
+				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,glob,0)
+				w !, $$$T("You have chosen "),$listlength(GlobList), $$$T(" globals"),!
 				} while('$listlength(GlobList))
-				r !,"Write filename or IP(port 7001): ", link
-				if (link="q") GOTO WriteSect
+				w !,$$$T("Write filename or IP(port 7001): ") r link
+				if (link="q"||link="") GOTO WriteSect
 				
 
 	set SockFlag=0			
@@ -63,8 +65,8 @@ WriteSect
 	Quit
 	
 FromFile
-	w #, "Settings from file:"
-	w !, "Type in filename, where the settings are stored: "
+	w #, $$$T("Settings from file:")
+	w !, $$$T("Type in filename, where the settings are stored: ")
 	r filename
 	set filet = ##class(%Stream.FileCharacter).%New()
 	set filet.Filename=filename
@@ -73,24 +75,20 @@ FromFile
 		set str = filet.ReadLine()
 		if ($e(str,1,2)="im") {
 			d ^importGlobal($e(str,8,*))
-			w !,"Global ", $e(str,8,*), " imported",!
+			w !,$$$T("Global "), $e(str,8,*), $$$T(" imported"),!
 			} 
 		else {
-			d ^exportGlobal($e(str,8,$f(str,",")-2),$e(str,$f(str,","),*))
-			w !,"Global ", $e(str,8,$f(str,",")-2), " exported",!
+				set link=$e(str,$f(str,","),*)
+				set blocksWritten=0
+  		SET file = ##class(%Stream.FileCharacter).%New(),file.Filename=link,file.RemoveOnClose=0
+  		if ('(file.IsNull())) { d file.MoveToEnd() }
+			d ^exportGlobal($e(str,8,$f(str,",")-2),.file,0,.buffer)
+			w !,$$$T("Global "), $e(str,8,$f(str,",")-2), $$$T(" exported"),!
+			d Final^exportGlobal(,.file,0,.buffer)
 			}
 	}
 	Quit
 	
-TextLabel /*****************************
-Welcome to the Export/Import master
-It helps to transfer globals between 8bit- && 16bit- versions of Cache
-Choose what you want to do?
-1) Export Section
-2) Import Section
-3) Choose file with settings
-Your action:
-*****************************/ 
-quit
+
 ]]></Routine>
 </Export>
