@@ -28,7 +28,7 @@ Start(link)
     		set s=sock.Read(l, -1)
     		set blockGot=$increment(blockGot)
     		if (blockGot # $$$BLOCKTICK = 0) w $c(13),"                                    ",$c(13),$$$T("Packets read:"),blockGot
-    		set s=##class(Globals.Utils).decode(s)
+    		//set s=##class(Globals.Utils).decode(s)
     		set buf=(buf_s) 
     		while ($f(buf,$$$NL)>0) 
     			{
@@ -53,7 +53,7 @@ Start(link)
 			set s = file.Read(l)
 			set blockGot=$increment(blockGot)
 			if (blockGot # $$$BLOCKTICK = 0) w $c(13),$$$T("                                    "),$c(13),$$$T("Packets read:"),blockGot
-			set s=##class(Globals.Utils).decode(s)
+			//set s=##class(Globals.Utils).decode(s)
     		set buf=buf_s
     		while ($f(buf,$$$NL)>0) 
     			{

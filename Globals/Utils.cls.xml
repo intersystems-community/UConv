@@ -19,25 +19,19 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		set i=1
 		for  
 			{
-		  	set tempstr=$e(queryary,i,i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)-$$$SYSBYTES-1)
-		  	q:($l(tempstr)<($$$BLOCKSIZE/$$$SYMBOLSPERCHAR - $l(buffer)-$$$SYSBYTES)) 	//выход если можем записать в буффер
-		  	set i=i+($$$BLOCKSIZE /$$$SYMBOLSPERCHAR)-$l(buffer)-$$$SYSBYTES
+		  	set tempstr=$e(queryary,i,i+($$$BLOCKSIZE)-$l(buffer)-$$$SYSBYTES-1)
+		  	q:($l(tempstr)<($$$BLOCKSIZE - $l(buffer)-$$$SYSBYTES)) 	//выход если можем записать в буффер
+		  	set i=i+($$$BLOCKSIZE)-$l(buffer)-$$$SYSBYTES
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
-		  	set tempstr2=..Encode(tempstr)
-		  	set length=..ValueToWord($l(tempstr2))
+		  	//set tempstr2=..Encode(tempstr)
+		  	set length=..ValueToWord($l(tempstr))
 		  	set ll=..Encode(length)
-		  	//set ll=""
-		  	//for j=1:1:$l(length) 
-		  	//{
-			 // 	if ($zh($a($e(length,j)))="0") { set ll=ll_"00" }
-			 // 	else {set ll=ll_$zh($a($e(length,j)))}
-		  	//}
 		  	if (sf) { do file.Write(ll, $$$YES) }
 		  	else {do file.Write(ll) }
 			if (sf) do file.ReadAny(3)
 			
-			if (sf) { do file.Write(tempstr2, $$$YES) }
-		  	else { do file.Write(tempstr2)}
+			if (sf) { do file.Write(tempstr, $$$YES) }
+		  	else { do file.Write(tempstr)}
 			set blockWritten = (blockWritten+1) 
 		  	if (sf) do file.ReadAny(3)
 	  		}
@@ -100,22 +94,25 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <FormalSpec>str:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
+	
 	set retVal="$lb(", nextElem="",ptr=0
 	
-	if ($LISTVALID(str)&&(str'="")) {
-		while ($LISTNEXT(str,ptr,nextElem)){
+	if ($LISTVALID($get(str))&&($get(str)'="")) {
+		try{
+		while ($LISTNEXT($get(str),ptr,nextElem)){
 			if ($LISTVALID($get(nextElem))&&($get(nextElem)'="")) {
-				set ttTT =..listToString(nextElem)
-				set retVal=retVal_ttTT_","
+				set ttTT =..listToString($get(nextElem))
+				set retVal=retVal_$get(ttTT)_","
 			}
 			else{
-				set retVal=retVal_""""_$get(nextElem)_""""_","
+				set retVal=retVal_""""_..makeSafeStr($get(nextElem))_""""_","
 			}
 		}
+			}catch {w !,"Str=",str}
 				set retVal=$e(retVal,1,*-1)
 				}
 	else {
-		set retVal=""""_str_""""
+		set retVal=""""_$get(str)_""""
 	}
 	q retVal_")"
 ]]></Implementation>
@@ -125,17 +122,19 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <ClassMethod>1</ClassMethod>
 <FormalSpec>str:%String,curGl:%String</FormalSpec>
 <Implementation><![CDATA[
-	try{
+	set str=..decode(str)
 	set dType=$e(str,1)
-	if (dType="") {W "ERR NULL dType"}
+	if (dType="") {W !,"ERR NULL dType",! h 3}
 	set str=$e(str,2,*)
 	
 	set globalName="",globalVal="",globalIndex=""
 	set globalName = $e(str,2,($f(str,"(")-2)) 
 	set globalVal = $e(str,($f(str,"||")), *)
 	if (($f(str,"||")>$f(str,"(")) &&  ($f(str,"(")>0)){
+		
 		//У узла есть индекс
 		set globalIndex = $e(str,$f(str,"("),($f(str,"||")-4))
+	
 		if (dType'="b")
 		{
 			if (dType="l")
@@ -167,17 +166,11 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 	}
 	
-	if (curGl'=globalName) 
+	if ($get(curGl)'=$get(globalName)) 
 	{
-		 w !,"Processing ^",globalName,!
-		 set curGl=globalName
+		 w !,"Processing ^",$get(globalName),!
+		 set curGl=$get(globalName)
 		 }
-	
-	}
-	
-	catch {
-		w !,"ERR"
-		}
 ]]></Implementation>
 </Method>
 
@@ -198,14 +191,15 @@ Chunk - > Hex -> Save to buf or send to file/socket
 
 <Method name="nodeToStr">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>queryarr:%String,buffer:%String,file</FormalSpec>
+<FormalSpec>queryarr:%String,buffer:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
+	//set tempstr=""
 	set blockWritten=0
 	 if ($LISTVALID(@queryarr)&&(@queryarr'="")){
 		 		//Углубляемся в список
 		 		set value=..listToString(@queryarr)
-		 		set tempstr="l"_queryarr_"||"_value_$$$NL
+		 		set tempstr=..Encode("l"_queryarr_"||"_value)_$$$NL
 		       q tempstr
        	}
        	else {
@@ -216,12 +210,12 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	       		for i=1:1:$bitcount(@queryarr) {
 		       		set bitString = bitString_($bit(@queryarr,i)_"")
 	       		} 
-	       		set tempstr="b"_queryarr_"||"_bitString_$$$NL
+	       		set tempstr=..Encode("b"_queryarr_"||"_bitString)_$$$NL
 	       		}
 	       catch {
 		       //Оставшийся вариант - обычное значение
 		       
-	       set tempstr="r"_queryarr_"||"_(@queryarr)_$$$NL //здесь """"
+	       set tempstr=..Encode("r"_queryarr_"||"_(@queryarr))_$$$NL //здесь """"
 	       }
 	       q tempstr
 	        }
@@ -231,8 +225,8 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <Method name="Compare">
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
-	Set g1=$Name(^WebER.Data.LabOrderI)
-	Set g2=$Name(^|"TEST"|WebER.Data.LabOrderI)
+	Set g1=$Name(^PROJECT)
+	Set g2=$Name(^|"TEST"|PROJECT)
 	Set res=$Name(^XXX)
 	Set (cnt1,cnt2)=0
 	Kill @res
@@ -246,7 +240,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	For  {
 		Set i=$Order(@g2@(i))
 		If i="" Quit
-		If '$Data(@g1@(i)) Set @res@(2,i)="",cnt2=cnt2+1
+		If $Data(@g1@(i))'=$data(@g2@(i)) Set @res@(2,i,1)=$get(@g1@(i)), @res@(2,i,2)=$get(@g2@(i)),cnt2=cnt2+1
 	}
 	Write cnt1,!,cnt2
 ]]></Implementation>
@@ -289,6 +283,16 @@ Chunk - > Hex -> Save to buf or send to file/socket
  if ($listdata(out,1))
   {quit out} 
   else {quit ""}
+]]></Implementation>
+</Method>
+
+<Method name="makeSafeStr">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	//На входе - строка абаыащы"аыги"dada
+	q $replace(str,"""","""""")
 ]]></Implementation>
 </Method>
 </Class>

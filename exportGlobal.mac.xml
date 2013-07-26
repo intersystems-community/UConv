@@ -14,18 +14,16 @@ Start(ary,file,SockFlag, buffer)
         	q:queryary=""  
         	set node = ##class(Globals.Utils).nodeToStr(queryary) //получаем 1 строчку из 1 узла
 	       	set blocksWritten = (blocksWritten + ##class(Globals.Utils).ChunkAndSend(node,.buffer, file, SockFlag))	//обрабатываем строчку(encode + ->buf/->send)
-			if (blocksWritten>(oldBW+$$$BLOCKTICK))
+			if ($get(blocksWritten)>($get(oldBW)+$$$BLOCKTICK))
 			{
-				set oldBW=blocksWritten
+				set oldBW=$get(blocksWritten)
 				w $c(13), $$$T("                                          ")
-				w $c(13),$$$T("Current blocks sent :"), $c(9),blocksWritten
+				w $c(13),$$$T("Current blocks sent :"), $c(9),$get(blocksWritten)
 			}
 			SET queryary=$QUERY(@queryary)  	
   }
   	//Записываем оставшийся кусок
-  
-	set tempstr2=##class(Globals.Utils).Encode(buffer)
-		  	set length=##class(Globals.Utils).ValueToWord($l(tempstr2))
+		  	set length=##class(Globals.Utils).ValueToWord($l(buffer))
 		  	set ll=##class(Globals.Utils).Encode(length)
 		  	if ($l(ll)=4) {set ll=ll_"0000"}
 		 
@@ -33,8 +31,8 @@ Start(ary,file,SockFlag, buffer)
 		  	else {do file.Write(ll) }
 			if (SockFlag) do file.ReadAny(3)
 			
-			if (SockFlag) { do file.Write(tempstr2, $$$YES) }
-		  	else { do file.Write(tempstr2)}
+			if (SockFlag) { do file.Write(buffer, $$$YES) }
+		  	else { do file.Write(buffer)}
 			set blocksWritten = (blocksWritten+1) 
 		  	if (SockFlag) do file.ReadAny(3)
 		  	w $$$T("..finished, blocks: "), blocksWritten
