@@ -12,6 +12,7 @@ Start(link)
 	set blockGot=0
 	if (link="")
 	{
+		set status=0
 		// Via socket
 		set sock = ##class(%IO.ServerSocket).%New(), sock.TranslationTable="UTF8" 
   		do sock.Open("7031",1,.sc)
@@ -40,6 +41,7 @@ Start(link)
     		}
     		while(s'="")
     		do sock.Close()
+    		set status=1
 	} else {w "CANT CREATE SOCK",!}
 	}
 	else 
