@@ -12,5 +12,7 @@
 #define THISISLIST ##class(Globals.Utils).ValueToWord(64)
 #define BLOCKTICK 10
 #define T(%val) $$$Text(%val,"impexp")
+#define LV(%str) $LISTVALID($get(%str))&&($get(%str)'="")
+#define Q """"
 ]]></Routine>
 </Export>

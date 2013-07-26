@@ -23,7 +23,8 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		  	q:($l(tempstr)<($$$BLOCKSIZE - $l(buffer)-$$$SYSBYTES)) 	//выход если можем записать в буффер
 		  	set i=i+($$$BLOCKSIZE)-$l(buffer)-$$$SYSBYTES
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
-		  	//set tempstr2=..Encode(tempstr)
+		 
+		 
 		  	set length=..ValueToWord($l(tempstr))
 		  	set ll=..Encode(length)
 		  	if (sf) { do file.Write(ll, $$$YES) }
@@ -97,10 +98,10 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 	set retVal="$lb(", nextElem="",ptr=0
 	
-	if ($LISTVALID($get(str))&&($get(str)'="")) {
+	if ($$$LV(str)) {
 		try{
 		while ($LISTNEXT($get(str),ptr,nextElem)){
-			if ($LISTVALID($get(nextElem))&&($get(nextElem)'="")) {
+			if ($$$LV(nextElem)) {
 				set ttTT =..listToString($get(nextElem))
 				set retVal=retVal_$get(ttTT)_","
 			}
@@ -139,7 +140,9 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		{
 			if (dType="l")
 			{
-				set @("^"_globalName_"("_globalIndex_")") =..lbCreate(globalVal)
+				//set @("^"_globalName_"("_globalIndex_")") =..lbCreate(globalVal)
+				set @("^"_globalName_"("_globalIndex_")") =..listBuilder(globalVal)
+				
 			}
 			else {set @("^"_globalName_"("_globalIndex_")") =globalVal}
 	
@@ -155,7 +158,9 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		set globalName = $e(str,2,($f(str,"||")-3)) 
 		if (dType'="b")
 		{
-			if (dType="l"){set @("^"_globalName) =..lbCreate(globalVal)}
+			if (dType="l"){//set @("^"_globalName) =..lbCreate(globalVal)
+			set @("^"_globalName) =..listBuilder(globalVal)
+			}
 			else{set @("^"_globalName) =globalVal}
 		}
 		else {
@@ -174,11 +179,11 @@ Chunk - > Hex -> Save to buf or send to file/socket
 ]]></Implementation>
 </Method>
 
-<Method name="lbCreate">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>str:%String</FormalSpec>
-<ReturnType>%String</ReturnType>
-<Implementation><![CDATA[
+<UDLText name="T">
+<Content><![CDATA[
+/*USELESS BECAUSE OF LIMITS FOR ROUTINE LENGTH
+ClassMethod lbCreate(str As %String) As %String
+{
 	SET src(0)=3
   	SET src(1)="TestB "
   	SET src(2)=" set ^str2="_str
@@ -186,17 +191,18 @@ Chunk - > Hex -> Save to buf or send to file/socket
   	SET stat=$COMPILE(src,0,errs,,,,"TestB")
     d ^TestB
     q ^str2
-]]></Implementation>
-</Method>
+}
+*/
+]]></Content>
+</UDLText>
 
 <Method name="nodeToStr">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>queryarr:%String,buffer:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	//set tempstr=""
-	set blockWritten=0
-	 if ($LISTVALID(@queryarr)&&(@queryarr'="")){
+	//set blockWritten=0
+	 if ($$$LV(@queryarr)){
 		 		//Углубляемся в список
 		 		set value=..listToString(@queryarr)
 		 		set tempstr=..Encode("l"_queryarr_"||"_value)_$$$NL
@@ -294,6 +300,116 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	//На входе - строка абаыащы"аыги"dada
 	q $replace(str,"""","""""")
 	//На выходе - безопасная строка
+]]></Implementation>
+</Method>
+
+<Method name="listBuilder">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	//Собираем $LB из строчки 
+	set listParams=""
+	set listParams=..getParams(str)
+	set ptr=0
+	for j=1:1:$listlength(listParams)
+	{
+		if ($f($list(listParams,j),"$lb")=4) set $list(listParams,j)=..listBuilder($list(listParams,j))
+	}
+	q listParams
+]]></Implementation>
+</Method>
+
+<Method name="findClosingBracket">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str,pos</FormalSpec>
+<ReturnType>%Numeric</ReturnType>
+<Implementation><![CDATA[
+	set openQuotes=0
+	set openBrackets=0
+	set bWatch=0
+	for i=1:1:$l(str) {
+		//Quotes part
+		if (($e(str,i)=$$$Q)&&(openQuotes=0)){
+			set openQuotes=1
+		}
+		elseif (($e(str,i)=$$$Q)&&(openQuotes=1)&&($e(str,i+1)'=$$$Q)){
+			set openQuotes=0
+		}
+		elseif (($e(str,i)=$$$Q)&&(openQuotes=1)&&($e(str,i+1)=$$$Q)) {
+			//кавычки внутри кавычек - двойные
+			//TOWATCH : а если тройные?)
+			set i=i+2
+		}
+		
+		
+		//Paranthesis part
+		if (($e(str,i)="(")&&(openQuotes=0)){
+			set openBrackets=openBrackets+1
+			if i=pos set bWatch=openBrackets-1
+		}
+		elseif (($e(str,i)=")")&&(openQuotes=0)){
+				
+				set openBrackets=openBrackets-1	
+				if (bWatch=openBrackets) quit			
+			}
+		
+	}
+	q i
+]]></Implementation>
+</Method>
+
+<Method name="getParams">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>str</FormalSpec>
+<ReturnType>%List</ReturnType>
+<Implementation><![CDATA[
+	set params=""
+	set inQuotes=0
+	set curFrom=1
+	//избавляемся от внешних скобок
+	set str= $e(str,$f(str,"("),..findClosingBracket(str,$f(str,"(")-1)-1)
+	set i=1
+	set str=$replace(str,"""""","")
+	for i=1:1:$l(str)
+	{
+		//Quotes part
+		if (($e(str,i)=$$$Q)&&('inQuotes)){
+			set inQuotes=1
+		}
+		elseif (($e(str,i)=$$$Q)&&(inQuotes)&&($e(str,i+1)'=$$$Q)){
+			set inQuotes=0
+		}
+		elseif (($e(str,i)=$$$Q)&&(inQuotes)&&($e(str,i+1)=$$$Q)) {
+			//кавычки внутри кавычек - двойные
+			//TOWATCH : а если тройные?)
+			while($e(str,i+1)=$$$Q){
+				s i=i+1 
+				}
+		}
+		
+		
+		//Paranthesis part
+		if (($e(str,i)="(")&&('inQuotes)){
+			set temp=..findClosingBracket(str,i)
+			if (i<temp) {s i=temp}
+			else {q}
+		}
+		
+		
+		//Comma part
+		
+		if (($e(str,i)=",")&&('inQuotes)){
+			set $list(params,$listlength(params)+1)=$replace($e(str,curFrom,i-1),"""","")
+			set curFrom=i+1
+			
+		}
+		
+
+	}
+	set $list(params,$listlength(params)+1)=$e(str,curFrom,*)
+	
+	q params
 ]]></Implementation>
 </Method>
 </Class>

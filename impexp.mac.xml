@@ -47,7 +47,7 @@ WriteSect
 	set SockFlag=0			
   	SET file = ##class(%Stream.FileCharacter).%New()
   	set file.Filename=link
-  	if ('(file.IsNull())) { d file.MoveToEnd() }
+  	//if ('(file.IsNull())) { d file.MoveToEnd() }
   	SET blocksWritten = 0
   	set file.RemoveOnClose=0
   	set sock=##class(%IO.Socket).%New(), sock.TranslationTable="UTF8"
