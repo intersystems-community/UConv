@@ -293,6 +293,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <Implementation><![CDATA[
 	//На входе - строка абаыащы"аыги"dada
 	q $replace(str,"""","""""")
+	//На выходе - безопасная строка
 ]]></Implementation>
 </Method>
 </Class>
