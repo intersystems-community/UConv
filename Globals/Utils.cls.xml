@@ -123,18 +123,19 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <ClassMethod>1</ClassMethod>
 <FormalSpec>str:%String,curGl:%String</FormalSpec>
 <Implementation><![CDATA[
-	set str=..decode(str)
-	set dType=$e(str,1)
+	//set str=..decode(str)
+	set dType=..decode($e(str,1,$$$SYMBOLSPERCHAR))
 	if (dType="") {W !,"ERR NULL dType",! h 3}
-	set str=$e(str,2,*)
+	set str=$e(str,2*$$$SYMBOLSPERCHAR+1,*)
 	
 	set globalName="",globalVal="",globalIndex=""
-	set globalName = $e(str,2,($f(str,"(")-2)) 
-	set globalVal = $e(str,($f(str,"||")), *)
-	if (($f(str,"||")>$f(str,"(")) &&  ($f(str,"(")>0)){
+	set globalName = ..decode($e(str,1,$f(str,"||")-3))
+	set globalVal = ..decode($e(str,$f(str,"||"),*))
+	if (($f(globalName,"(")>0)){
 		
 		//У узла есть индекс
-		set globalIndex = $e(str,$f(str,"("),($f(str,"||")-4))
+		set globalIndex = $e(globalName,$f(globalName,"("),*-1)
+		set globalName=$e(globalName,1,$f(globalName,"(")-2)
 	
 		if (dType'="b")
 		{
@@ -155,7 +156,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	}
 	else {
 		//У узла нет индекса - ^name=val
-		set globalName = $e(str,2,($f(str,"||")-3)) 
+		
 		if (dType'="b")
 		{
 			if (dType="l"){//set @("^"_globalName) =..lbCreate(globalVal)
@@ -205,7 +206,7 @@ ClassMethod lbCreate(str As %String) As %String
 	 if ($$$LV(@queryarr)){
 		 		//Углубляемся в список
 		 		set value=..listToString(@queryarr)
-		 		set tempstr=..Encode("l"_queryarr_"||"_value)_$$$NL
+		 		set tempstr=..Encode("l"_queryarr)_"||"_..Encode(value)_$$$NL
 		       q tempstr
        	}
        	else {
@@ -216,12 +217,12 @@ ClassMethod lbCreate(str As %String) As %String
 	       		for i=1:1:$bitcount(@queryarr) {
 		       		set bitString = bitString_($bit(@queryarr,i)_"")
 	       		} 
-	       		set tempstr=..Encode("b"_queryarr_"||"_bitString)_$$$NL
+	       		set tempstr=..Encode("b"_queryarr)_"||"_..Encode(bitString)_$$$NL
 	       		}
 	       catch {
 		       //Оставшийся вариант - обычное значение
 		       
-	       set tempstr=..Encode("r"_queryarr_"||"_(@queryarr))_$$$NL //здесь """"
+	       set tempstr=..Encode("r"_queryarr)_"||"_..Encode((@queryarr))_$$$NL //здесь """"
 	       }
 	       q tempstr
 	        }
