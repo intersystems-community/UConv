@@ -108,7 +108,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 				set retVal=retVal_""""_..makeSafeStr($get(nextElem))_""""_","
 			}
 		}
-			}catch {w !,"Str=",str}
+			}catch {}
 				set retVal=$e(retVal,1,*-1)
 				}
 	else {
