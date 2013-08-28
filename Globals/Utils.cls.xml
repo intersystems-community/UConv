@@ -46,7 +46,7 @@ Chunk - > Hex -> Save to buf or send to file/socket
 <FormalSpec>t:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
-	if (t="") return "0000" //Можно ли?
+	if (t="") q "0000" //Можно ли?
 	if ($l(t) =1) {s t="000"_t}
 	elseif ($l(t) =2) {s t="00"_t}
 	elseif ($l(t) =3) {s t="0"_t}

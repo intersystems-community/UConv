@@ -80,11 +80,17 @@ FromFile
 		else {
 				set link=$e(str,$f(str,","),*)
 				set blocksWritten=0
-  		SET file = ##class(%Stream.FileCharacter).%New(),file.Filename=link,file.RemoveOnClose=0
+  				SET file = ##class(%Stream.FileCharacter).%New(),file.Filename=link,file.RemoveOnClose=0
   		if ('(file.IsNull())) { d file.MoveToEnd() }
-			d ^exportGlobal($e(str,8,$f(str,",")-2),.file,0,.buffer)
-			w !,$$$T("Global "), $e(str,8,$f(str,",")-2), $$$T(" exported"),!
-			d Final^exportGlobal(,.file,0,.buffer)
+  		set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,$e(str,8,$f(str,",")-2),0)
+  		set buffer=""
+			set ptr=0
+			set SockFlag=0
+				while ($LISTNEXT(GlobList,ptr,val)) {
+					set buffer=""
+					do ^exportGlobal("^"_val,file,SockFlag,.buffer)
+					}
+					do Final^exportGlobal("^"_val,.file,SockFlag,.buffer)
 			}
 	}
 	Quit
