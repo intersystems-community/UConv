@@ -37,7 +37,7 @@ Export
 WriteSect
 				w !, $$$T("Write name of global: ^") r glob
 				if (glob="q"||glob="") GOTO Start
-				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,glob,0)
+				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,glob,1)
 				w !, $$$T("You have chosen "),$listlength(GlobList), $$$T(" globals"),!
 				} while('$listlength(GlobList))
 				w !,$$$T("Write filename or IP(port 7001): ") r link

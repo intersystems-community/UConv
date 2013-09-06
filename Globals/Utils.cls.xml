@@ -24,9 +24,9 @@ Chunk - > Hex -> Save to buf or send to file/socket
 		  	set i=i+($$$BLOCKSIZE)-$l(buffer)-$$$SYSBYTES
 		  	if (buffer'="") {set tempstr=buffer_tempstr, buffer=""}
 		 
-		 
-		  	set length=..ValueToWord($l(tempstr))
-		  	set ll=..Encode(length)
+		 	set length=..ValueToWord($l(tempstr))
+		  	set ll=..toFour($ZHEX($A($e(length,1))))_..toFour($ZHEX($A($e(length,2))))
+		  	//set ll=..Encode(length)  - не нужен ZCONVERT
 		  	if (sf) { do file.Write(ll, $$$YES) }
 		  	else {do file.Write(ll) }
 			if (sf) do file.ReadAny(3)
@@ -130,6 +130,8 @@ Chunk - > Hex -> Save to buf or send to file/socket
 	
 	set globalName="",globalVal="",globalIndex=""
 	set globalName = ..decode($e(str,1,$f(str,"||")-3))
+	//if ($get(globalName)="") q
+	//w globalName,!
 	set globalVal = ..decode($e(str,$f(str,"||"),*))
 	if (($f(globalName,"(")>0)){
 		

@@ -24,8 +24,8 @@ Start(ary,file,SockFlag, buffer)
   }
   	//Записываем оставшийся кусок
 		  	set length=##class(Globals.Utils).ValueToWord($l(buffer))
-		  	set ll=##class(Globals.Utils).Encode(length)
-		  	if ($l(ll)=4) {set ll=ll_"0000"}
+		  	set ll=##class(Globals.Utils).toFour($ZHEX($A($e(length,1))))_##class(Globals.Utils).toFour($ZHEX($A($e(length,2))))
+		  		if ($l(ll)=4) {set ll=ll_"0000"}
 		 
 		  	if (SockFlag) { do file.Write(ll, $$$YES) }
 		  	else {do file.Write(ll) }

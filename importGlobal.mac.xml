@@ -51,6 +51,7 @@ Start(link)
 		while ('file.AtEnd) {
 			set packetSize=file.Read($$$PACKETLENGTH),ll=""
 			if (packetSize="") q
+			
 			set l=##class(Globals.Utils).WordToValue($c($zh($e(packetSize,1,4)),$zh($e(packetSize,5,*))))
 			set s = file.Read(l)
 			set blockGot=$increment(blockGot)
