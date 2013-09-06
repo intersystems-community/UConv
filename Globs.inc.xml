@@ -14,5 +14,7 @@
 #define T(%val) $$$Text(%val,"impexp")
 #define LV(%str) $LISTVALID($get(%str))&&($get(%str)'="")
 #define Q """"
+#; Change this to 0 if you don't want to export system globals
+#define SYSGLOBS 1 
 ]]></Routine>
 </Export>

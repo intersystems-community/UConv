@@ -37,7 +37,7 @@ Export
 WriteSect
 				w !, $$$T("Write name of global: ^") r glob
 				if (glob="q"||glob="") GOTO Start
-				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,glob,1)
+				set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,glob,$$$SYSGLOBS)
 				w !, $$$T("You have chosen "),$listlength(GlobList), $$$T(" globals"),!
 				} while('$listlength(GlobList))
 				w !,$$$T("Write filename or IP(port 7001): ") r link
@@ -82,7 +82,7 @@ FromFile
 				set blocksWritten=0
   				SET file = ##class(%Stream.FileCharacter).%New(),file.Filename=link,file.RemoveOnClose=0
   		if ('(file.IsNull())) { d file.MoveToEnd() }
-  		set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,$e(str,8,$f(str,",")-2),0)
+  		set GlobList = ##class(Globals.Utils).NameSpaceGlobalList($ZNSPACE,$e(str,8,$f(str,",")-2),$$$SYSGLOBS)
   		set buffer=""
 			set ptr=0
 			set SockFlag=0
